@@ -1,0 +1,40 @@
+{
+  "squads": [
+    { "id": "sq-alpha", "nome": "Squad Alpha" },
+    { "id": "sq-beta", "nome": "Squad Beta" },
+    { "id": "sq-gamma", "nome": "Squad Gamma" }
+  ],
+  "analistas": [
+    { "id": "an-01", "nome": "Camila Duarte", "squadId": "sq-alpha", "funcao": "Analista de Roteiros Pleno" },
+    { "id": "an-02", "nome": "Rafael Nogueira", "squadId": "sq-alpha", "funcao": "Analista de Roteiros Júnior" },
+    { "id": "an-03", "nome": "Beatriz Lima", "squadId": "sq-alpha", "funcao": "Coordenadora de Squad" },
+    { "id": "an-04", "nome": "Thiago Almeida", "squadId": "sq-beta", "funcao": "Analista de Roteiros Sênior" },
+    { "id": "an-05", "nome": "Juliana Ferraz", "squadId": "sq-beta", "funcao": "Analista de Roteiros Pleno" },
+    { "id": "an-06", "nome": "Marcos Vinícius", "squadId": "sq-beta", "funcao": "Coordenador de Squad" },
+    { "id": "an-07", "nome": "Larissa Prado", "squadId": "sq-gamma", "funcao": "Analista de Roteiros Pleno" },
+    { "id": "an-08", "nome": "Eduardo Santos", "squadId": "sq-gamma", "funcao": "Analista de Roteiros Júnior" },
+    { "id": "an-09", "nome": "Fernanda Costa", "squadId": "sq-gamma", "funcao": "Coordenadora de Squad" }
+  ],
+  "eventos": [
+    { "id": "ev-001", "tipo": "ferias", "titulo": "Férias", "analistaId": "an-01", "dataInicio": "2026-01-12", "dataFim": "2026-01-26", "descricao": "Férias regulamentares" },
+    { "id": "ev-002", "tipo": "ferias", "titulo": "Férias", "analistaId": "an-05", "dataInicio": "2026-02-02", "dataFim": "2026-02-16", "descricao": "" },
+    { "id": "ev-003", "tipo": "ferias", "titulo": "Férias", "analistaId": "an-08", "dataInicio": "2026-07-06", "dataFim": "2026-07-20", "descricao": "" },
+    { "id": "ev-004", "tipo": "ferias", "titulo": "Férias", "analistaId": "an-03", "dataInicio": "2026-12-14", "dataFim": "2026-12-28", "descricao": "" },
+    { "id": "ev-005", "tipo": "curso", "titulo": "Curso: Storytelling Avançado", "analistaId": "an-02", "dataInicio": "2026-03-10", "dataFim": "2026-03-10", "descricao": "Turma online, período da tarde" },
+    { "id": "ev-006", "tipo": "curso", "titulo": "Curso: Gestão de Prazos Editoriais", "analistaId": "an-06", "dataInicio": "2026-03-18", "dataFim": "2026-03-19", "descricao": "Presencial - Auditório 2" },
+    { "id": "ev-007", "tipo": "curso", "titulo": "Curso: Liderança para Coordenadores", "analistaId": "an-09", "dataInicio": "2026-05-05", "dataFim": "2026-05-07", "descricao": "" },
+    { "id": "ev-008", "tipo": "curso", "titulo": "Curso: Ferramentas de Roteiro", "analistaId": "an-07", "dataInicio": "2026-08-19", "dataFim": "2026-08-19", "descricao": "" },
+    { "id": "ev-009", "tipo": "reuniao", "titulo": "Reunião Extraordinária: Revisão de Escopo", "squadId": "sq-alpha", "analistaId": "an-03", "dataInicio": "2026-02-11", "dataFim": "2026-02-11", "descricao": "Convocada pela coordenação para alinhar mudanças de escopo do trimestre" },
+    { "id": "ev-010", "tipo": "reuniao", "titulo": "Reunião Extraordinária: Alinhamento com Cliente", "squadId": "sq-beta", "analistaId": "an-06", "dataInicio": "2026-04-22", "dataFim": "2026-04-22", "descricao": "" },
+    { "id": "ev-011", "tipo": "reuniao", "titulo": "Reunião Extraordinária: Incidente de Produção", "squadId": "sq-gamma", "analistaId": "an-09", "dataInicio": "2026-06-09", "dataFim": "2026-06-09", "descricao": "Convocação fora da agenda padrão" },
+    { "id": "ev-012", "tipo": "reuniao", "titulo": "Reunião Extraordinária: Revisão Orçamentária", "squadId": "sq-alpha", "analistaId": "an-03", "dataInicio": "2026-09-15", "dataFim": "2026-09-15", "descricao": "" },
+    { "id": "ev-013", "tipo": "data_importante", "titulo": "Entrega Trimestral Q1", "squadId": "sq-alpha", "dataInicio": "2026-03-31", "dataFim": "2026-03-31", "descricao": "Fechamento e entrega dos roteiros do primeiro trimestre" },
+    { "id": "ev-014", "tipo": "data_importante", "titulo": "Auditoria Interna de Processos", "dataInicio": "2026-05-20", "dataFim": "2026-05-21", "descricao": "Todas as squads" },
+    { "id": "ev-015", "tipo": "data_importante", "titulo": "Entrega Trimestral Q2", "squadId": "sq-beta", "dataInicio": "2026-06-30", "dataFim": "2026-06-30", "descricao": "" },
+    { "id": "ev-016", "tipo": "data_importante", "titulo": "Kickoff Planejamento Anual", "dataInicio": "2026-11-03", "dataFim": "2026-11-03", "descricao": "Todas as squads" },
+    { "id": "ev-017", "tipo": "ponto", "titulo": "Responsável pelo Ponto", "analistaId": "an-02", "squadId": "sq-alpha", "dataInicio": "2026-01-01", "dataFim": "2026-01-31", "descricao": "Registro e validação de ponto da squad" },
+    { "id": "ev-018", "tipo": "ponto", "titulo": "Responsável pelo Ponto", "analistaId": "an-05", "squadId": "sq-beta", "dataInicio": "2026-01-01", "dataFim": "2026-02-28", "descricao": "" },
+    { "id": "ev-019", "tipo": "ponto", "titulo": "Responsável pelo Ponto", "analistaId": "an-08", "squadId": "sq-gamma", "dataInicio": "2026-01-01", "dataFim": "2026-03-31", "descricao": "" },
+    { "id": "ev-020", "tipo": "ponto", "titulo": "Responsável pelo Ponto", "analistaId": "an-01", "squadId": "sq-alpha", "dataInicio": "2026-02-01", "dataFim": "2026-03-31", "descricao": "" }
+  ]
+}
