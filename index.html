@@ -313,6 +313,7 @@
   }
 
   .month-nav { display: flex; align-items: center; gap: 8px; }
+  .toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
   .nav-btn {
     width: 32px;
@@ -347,6 +348,42 @@
     cursor: pointer;
   }
   .today-btn:hover { background: var(--surface-alt); }
+
+  .primary-btn {
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border-radius: var(--radius-sm);
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .primary-btn:hover { filter: brightness(1.08); }
+
+  .ghost-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .ghost-btn:hover { background: var(--surface-alt); }
+
+  .danger-btn {
+    border: 1px solid var(--type-importante);
+    background: var(--type-importante-bg);
+    color: var(--type-importante);
+    border-radius: var(--radius-sm);
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .danger-btn:hover { filter: brightness(0.97); }
 
   .view-toggle {
     display: inline-flex;
@@ -443,6 +480,11 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
   }
   .event-pill[data-type="ferias"] { background: var(--type-ferias-bg); color: var(--type-ferias); }
   .event-pill[data-type="curso"] { background: var(--type-curso-bg); color: var(--type-curso); }
@@ -491,6 +533,8 @@
   }
   .event-table tr:last-child td { border-bottom: none; }
   .event-table td.date-cell { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-muted); }
+  .event-table tbody tr { cursor: pointer; }
+  .event-table tbody tr:hover { background: var(--surface-alt); }
 
   .type-badge {
     display: inline-flex;
@@ -564,6 +608,24 @@
   .squad-card .name { font-weight: 600; }
   .squad-card .role { color: var(--text-muted); display: block; font-size: 11.5px; }
 
+  .squad-card .roteiros-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-faint);
+    margin: 12px 0 6px;
+  }
+  .roteiros-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .roteiro-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
   /* ---------- Modal ---------- */
   .modal-overlay {
     position: fixed;
@@ -609,13 +671,60 @@
     font-size: 14px;
   }
   .modal-event {
-    padding: 10px 0;
+    padding: 10px 6px;
+    margin: 0 -6px;
     border-bottom: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: none;
+    width: calc(100% + 12px);
+    text-align: left;
+    display: block;
+    font-family: inherit;
+    color: inherit;
   }
+  .modal-event:hover { background: var(--surface-alt); }
   .modal-event:last-child { border-bottom: none; }
   .modal-event-title { font-weight: 700; font-size: 13.5px; margin-bottom: 3px; }
   .modal-event-meta { font-size: 12px; color: var(--text-muted); }
   .modal-event-desc { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ---------- Event form ---------- */
+  #eventForm { display: flex; flex-direction: column; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 420px) { .form-row { grid-template-columns: 1fr; } }
+
+  #eventForm input,
+  #eventForm select,
+  #eventForm textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface-alt);
+    color: var(--text);
+    resize: vertical;
+  }
+
+  .form-status {
+    font-size: 12.5px;
+    font-weight: 600;
+    min-height: 16px;
+  }
+  .form-status.error { color: var(--type-importante); }
+  .form-status.success { color: var(--type-curso); }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .form-actions-right { display: flex; gap: 8px; margin-left: auto; }
+
+  .live-dot { background: var(--type-ponto); }
 </style>
 
 <div class="app">
@@ -652,6 +761,13 @@
       </div>
 
       <div class="filter-group">
+        <label class="filter-label" for="roteiroSelect">Roteiro</label>
+        <select id="roteiroSelect">
+          <option value="">Todos os roteiros</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
         <span class="filter-label">Tipo</span>
         <div class="type-chips" id="typeChips" role="group" aria-label="Filtrar por tipo"></div>
       </div>
@@ -669,9 +785,12 @@
           <button class="nav-btn" id="nextMonth" type="button" aria-label="Próximo mês">›</button>
           <button class="today-btn" id="todayBtn" type="button">Hoje</button>
         </div>
-        <div class="view-toggle" role="group" aria-label="Alternar visualização">
-          <button id="viewMonthBtn" type="button" aria-pressed="true">Mês</button>
-          <button id="viewListBtn" type="button" aria-pressed="false">Lista</button>
+        <div class="toolbar-right">
+          <div class="view-toggle" role="group" aria-label="Alternar visualização">
+            <button id="viewMonthBtn" type="button" aria-pressed="true">Mês</button>
+            <button id="viewListBtn" type="button" aria-pressed="false">Lista</button>
+          </div>
+          <button class="primary-btn" id="createEventBtn" type="button">+ Criar Evento</button>
         </div>
       </div>
 
@@ -720,6 +839,57 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="eventModalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+    <div class="modal-header">
+      <h2 id="eventModalTitle">Criar Evento</h2>
+      <button class="modal-close" id="eventModalClose" type="button" aria-label="Fechar">✕</button>
+    </div>
+    <form id="eventForm">
+      <div class="form-group">
+        <label class="filter-label" for="formTipo">Tipo</label>
+        <select id="formTipo"></select>
+      </div>
+      <div class="form-group">
+        <label class="filter-label" for="formTitulo">Título</label>
+        <input type="text" id="formTitulo" autocomplete="off" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="filter-label" for="formSquad">Squad</label>
+          <select id="formSquad"><option value="">—</option></select>
+        </div>
+        <div class="form-group">
+          <label class="filter-label" for="formAnalista">Analista</label>
+          <select id="formAnalista"><option value="">—</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="filter-label" for="formDataInicio">Data início</label>
+          <input type="date" id="formDataInicio" />
+        </div>
+        <div class="form-group">
+          <label class="filter-label" for="formDataFim">Data fim</label>
+          <input type="date" id="formDataFim" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="filter-label" for="formDescricao">Descrição</label>
+        <textarea id="formDescricao" rows="3"></textarea>
+      </div>
+      <div class="form-status" id="formStatus" role="status"></div>
+      <div class="form-actions">
+        <button type="button" id="formDeleteBtn" class="danger-btn" hidden>Excluir</button>
+        <div class="form-actions-right">
+          <button type="button" id="formCancelBtn" class="ghost-btn">Cancelar</button>
+          <button type="submit" id="formSaveBtn" class="primary-btn">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -732,6 +902,11 @@
     ponto: "Responsabilidade de Ponto"
   };
   var TYPE_ORDER = ["ferias", "curso", "reuniao", "data_importante", "ponto"];
+
+  // Cole aqui a URL do Google Apps Script Web App (veja APPS_SCRIPT.md) para
+  // habilitar leitura/gravação ao vivo na planilha. Deixe vazio para usar
+  // apenas data.json / dados de exemplo em modo leitura.
+  var APPS_SCRIPT_URL = "";
   var WEEKDAY_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
   var MONTH_LABELS = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -740,9 +915,9 @@
 
   var SAMPLE_DATA = {
     squads: [
-      { id: "sq-alpha", nome: "Squad Alpha" },
-      { id: "sq-beta", nome: "Squad Beta" },
-      { id: "sq-gamma", nome: "Squad Gamma" }
+      { id: "sq-alpha", nome: "Squad Alpha", roteiros: ["Coração em Chamas", "Reencontro"] },
+      { id: "sq-beta", nome: "Squad Beta", roteiros: ["Alma Livre", "Segunda Chance"] },
+      { id: "sq-gamma", nome: "Squad Gamma", roteiros: ["Sob o Mesmo Céu", "Laços de Sangue"] }
     ],
     analistas: [
       { id: "an-01", nome: "Camila Duarte", squadId: "sq-alpha", funcao: "Analista de Roteiros Pleno" },
@@ -786,7 +961,9 @@
     viewYear: 2026,
     viewMonth: 0,
     view: "month",
-    filters: { search: "", squadId: "", analistaId: "", types: TYPE_ORDER.slice() }
+    filters: { search: "", squadId: "", analistaId: "", roteiro: "", types: TYPE_ORDER.slice() },
+    editingEventId: null,
+    online: false
   };
 
   function parseISODate(str) {
@@ -822,6 +999,26 @@
     return "";
   }
 
+  function allRoteiros() {
+    var set = {};
+    state.data.squads.forEach(function (s) {
+      (s.roteiros || []).forEach(function (r) { set[r] = true; });
+    });
+    return Object.keys(set).sort(function (a, b) { return a.localeCompare(b, "pt-BR"); });
+  }
+
+  function squadIdsForRoteiro(titulo) {
+    return state.data.squads
+      .filter(function (s) { return (s.roteiros || []).indexOf(titulo) !== -1; })
+      .map(function (s) { return s.id; });
+  }
+
+  function roteirosForSquad(squadId) {
+    if (!squadId) return allRoteiros();
+    var squad = state.squadsById[squadId];
+    return squad && squad.roteiros ? squad.roteiros.slice().sort(function (a, b) { return a.localeCompare(b, "pt-BR"); }) : [];
+  }
+
   function populateSelects() {
     var squadSelect = document.getElementById("squadSelect");
     state.data.squads.forEach(function (s) {
@@ -831,6 +1028,7 @@
       squadSelect.appendChild(opt);
     });
     refreshAnalistaOptions();
+    refreshRoteiroOptions();
   }
 
   function refreshAnalistaOptions() {
@@ -849,6 +1047,22 @@
     var stillValid = list.some(function (a) { return a.id === currentValue; });
     analistaSelect.value = stillValid ? currentValue : "";
     if (!stillValid) state.filters.analistaId = "";
+  }
+
+  function refreshRoteiroOptions() {
+    var roteiroSelect = document.getElementById("roteiroSelect");
+    var currentValue = state.filters.roteiro;
+    roteiroSelect.innerHTML = '<option value="">Todos os roteiros</option>';
+    var list = roteirosForSquad(state.filters.squadId);
+    list.forEach(function (titulo) {
+      var opt = document.createElement("option");
+      opt.value = titulo;
+      opt.textContent = titulo;
+      roteiroSelect.appendChild(opt);
+    });
+    var stillValid = list.indexOf(currentValue) !== -1;
+    roteiroSelect.value = stillValid ? currentValue : "";
+    if (!stillValid) state.filters.roteiro = "";
   }
 
   function buildTypeChips() {
@@ -885,13 +1099,16 @@
       var evSquadId = eventSquadId(ev);
       if (f.squadId && evSquadId !== f.squadId) return false;
       if (f.analistaId && ev.analistaId !== f.analistaId) return false;
+      if (f.roteiro && squadIdsForRoteiro(f.roteiro).indexOf(evSquadId) === -1) return false;
       if (q) {
+        var squad = state.squadsById[evSquadId];
         var haystack = [
           ev.titulo,
           ev.descricao || "",
           analistaNome(ev.analistaId),
           squadNome(evSquadId),
-          TYPE_LABELS[ev.tipo]
+          TYPE_LABELS[ev.tipo],
+          squad && squad.roteiros ? squad.roteiros.join(" ") : ""
         ].join(" ").toLowerCase();
         if (haystack.indexOf(q) === -1) return false;
       }
@@ -933,9 +1150,10 @@
   }
 
   function buildDayCell(cellDate, filteredEvents, today) {
-    var cell = document.createElement("button");
-    cell.type = "button";
+    var cell = document.createElement("div");
     cell.className = "day-cell";
+    cell.tabIndex = 0;
+    cell.setAttribute("role", "button");
     var outside = cellDate.getMonth() !== state.viewMonth;
     if (outside) cell.classList.add("outside");
     if (isSameDay(cellDate, today)) cell.classList.add("is-today");
@@ -950,10 +1168,15 @@
     eventsWrap.className = "day-events";
     var maxShow = 3;
     dayEvents.slice(0, maxShow).forEach(function (ev) {
-      var pill = document.createElement("div");
+      var pill = document.createElement("button");
+      pill.type = "button";
       pill.className = "event-pill";
       pill.dataset.type = ev.tipo;
       pill.textContent = ev.titulo;
+      pill.addEventListener("click", function (e) {
+        e.stopPropagation();
+        openEventForm("edit", ev);
+      });
       eventsWrap.appendChild(pill);
     });
     if (dayEvents.length > maxShow) {
@@ -964,8 +1187,10 @@
     }
     cell.appendChild(eventsWrap);
 
-    cell.addEventListener("click", function () {
-      openDayModal(cellDate, dayEvents);
+    function activate() { openDayModal(cellDate, dayEvents); }
+    cell.addEventListener("click", activate);
+    cell.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); }
     });
     return cell;
   }
@@ -983,8 +1208,13 @@
       body.appendChild(empty);
     } else {
       dayEvents.forEach(function (ev) {
-        var row = document.createElement("div");
+        var row = document.createElement("button");
+        row.type = "button";
         row.className = "modal-event";
+        row.addEventListener("click", function () {
+          closeDayModal();
+          openEventForm("edit", ev);
+        });
         var titleEl = document.createElement("div");
         titleEl.className = "modal-event-title";
         titleEl.textContent = ev.titulo;
@@ -1020,6 +1250,173 @@
     document.getElementById("dayModalOverlay").hidden = true;
   }
 
+  function populateFormStaticSelects() {
+    var formTipo = document.getElementById("formTipo");
+    formTipo.innerHTML = "";
+    TYPE_ORDER.forEach(function (type) {
+      var opt = document.createElement("option");
+      opt.value = type;
+      opt.textContent = TYPE_LABELS[type];
+      formTipo.appendChild(opt);
+    });
+
+    var formSquad = document.getElementById("formSquad");
+    formSquad.innerHTML = '<option value="">—</option>';
+    state.data.squads.forEach(function (s) {
+      var opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.nome;
+      formSquad.appendChild(opt);
+    });
+
+    refreshFormAnalistaOptions();
+  }
+
+  function refreshFormAnalistaOptions() {
+    var formSquad = document.getElementById("formSquad");
+    var formAnalista = document.getElementById("formAnalista");
+    var currentValue = formAnalista.value;
+    var squadId = formSquad.value;
+    formAnalista.innerHTML = '<option value="">—</option>';
+    var list = state.data.analistas.filter(function (a) { return !squadId || a.squadId === squadId; });
+    list.forEach(function (a) {
+      var opt = document.createElement("option");
+      opt.value = a.id;
+      opt.textContent = a.nome;
+      formAnalista.appendChild(opt);
+    });
+    if (list.some(function (a) { return a.id === currentValue; })) formAnalista.value = currentValue;
+  }
+
+  function setFormStatus(message, kind) {
+    var el = document.getElementById("formStatus");
+    el.textContent = message || "";
+    el.className = "form-status" + (kind ? " " + kind : "");
+  }
+
+  function openEventForm(mode, ev) {
+    closeDayModal();
+    state.editingEventId = mode === "edit" && ev ? ev.id : null;
+    document.getElementById("eventModalTitle").textContent = mode === "edit" ? "Editar Evento" : "Criar Evento";
+    document.getElementById("formDeleteBtn").hidden = mode !== "edit";
+    setFormStatus("");
+
+    document.getElementById("formTipo").value = mode === "edit" ? ev.tipo : "ferias";
+    document.getElementById("formTitulo").value = mode === "edit" ? ev.titulo : "";
+    document.getElementById("formSquad").value = mode === "edit" ? (ev.squadId || "") : "";
+    refreshFormAnalistaOptions();
+    document.getElementById("formAnalista").value = mode === "edit" ? (ev.analistaId || "") : "";
+    document.getElementById("formDataInicio").value = mode === "edit" ? ev.dataInicio : "";
+    document.getElementById("formDataFim").value = mode === "edit" ? ev.dataFim : "";
+    document.getElementById("formDescricao").value = mode === "edit" ? (ev.descricao || "") : "";
+
+    document.getElementById("eventModalOverlay").hidden = false;
+    document.getElementById("formTitulo").focus();
+  }
+
+  function closeEventForm() {
+    document.getElementById("eventModalOverlay").hidden = true;
+    state.editingEventId = null;
+  }
+
+  function callAppsScript(payload) {
+    return fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      if (!res.ok) throw new Error("Falha de rede (" + res.status + ")");
+      return res.json();
+    }).then(function (json) {
+      if (!json.ok) throw new Error(json.error || "Erro desconhecido ao salvar");
+      return json;
+    });
+  }
+
+  function upsertLocalEvento(evento) {
+    var idx = state.data.eventos.findIndex(function (e) { return e.id === evento.id; });
+    if (idx === -1) state.data.eventos.push(evento);
+    else state.data.eventos[idx] = evento;
+  }
+
+  function handleFormSubmit(e) {
+    e.preventDefault();
+    var tipo = document.getElementById("formTipo").value;
+    var titulo = document.getElementById("formTitulo").value.trim();
+    var squadId = document.getElementById("formSquad").value;
+    var analistaId = document.getElementById("formAnalista").value;
+    var dataInicio = document.getElementById("formDataInicio").value;
+    var dataFim = document.getElementById("formDataFim").value;
+    var descricao = document.getElementById("formDescricao").value.trim();
+
+    if (!titulo) { setFormStatus("Informe um título.", "error"); return; }
+    if (!dataInicio || !dataFim) { setFormStatus("Informe as datas de início e fim.", "error"); return; }
+    if (dataFim < dataInicio) { setFormStatus("A data fim não pode ser anterior à data início.", "error"); return; }
+
+    var isEdit = !!state.editingEventId;
+    var evento = {
+      id: isEdit ? state.editingEventId : null,
+      tipo: tipo,
+      titulo: titulo,
+      squadId: squadId,
+      analistaId: analistaId,
+      dataInicio: dataInicio,
+      dataFim: dataFim,
+      descricao: descricao
+    };
+
+    setFormStatus(APPS_SCRIPT_URL ? "Salvando na planilha…" : "Salvando…");
+    document.getElementById("formSaveBtn").disabled = true;
+
+    var save;
+    if (APPS_SCRIPT_URL) {
+      save = callAppsScript({ action: isEdit ? "update" : "create", tipo: tipo, evento: evento })
+        .then(function (json) { return json.evento; });
+    } else {
+      save = Promise.resolve().then(function () {
+        if (!evento.id) evento.id = "ev-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        return evento;
+      });
+    }
+
+    save.then(function (savedEvento) {
+      upsertLocalEvento(savedEvento);
+      render();
+      closeEventForm();
+    }).catch(function (err) {
+      setFormStatus("Erro ao salvar: " + err.message, "error");
+    }).finally(function () {
+      document.getElementById("formSaveBtn").disabled = false;
+    });
+  }
+
+  function handleFormDelete() {
+    if (!state.editingEventId) return;
+    if (!window.confirm("Excluir este evento? Esta ação não pode ser desfeita.")) return;
+    var id = state.editingEventId;
+    var tipo = document.getElementById("formTipo").value;
+
+    setFormStatus(APPS_SCRIPT_URL ? "Excluindo na planilha…" : "Excluindo…");
+    document.getElementById("formDeleteBtn").disabled = true;
+
+    var del;
+    if (APPS_SCRIPT_URL) {
+      del = callAppsScript({ action: "delete", tipo: tipo, evento: { id: id } });
+    } else {
+      del = Promise.resolve();
+    }
+
+    del.then(function () {
+      state.data.eventos = state.data.eventos.filter(function (e) { return e.id !== id; });
+      render();
+      closeEventForm();
+    }).catch(function (err) {
+      setFormStatus("Erro ao excluir: " + err.message, "error");
+    }).finally(function () {
+      document.getElementById("formDeleteBtn").disabled = false;
+    });
+  }
+
   function renderList(filteredEvents) {
     var body = document.getElementById("listBody");
     var emptyState = document.getElementById("listEmpty");
@@ -1034,6 +1431,11 @@
     emptyState.hidden = true;
     sorted.forEach(function (ev) {
       var tr = document.createElement("tr");
+      tr.tabIndex = 0;
+      tr.addEventListener("click", function () { openEventForm("edit", ev); });
+      tr.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEventForm("edit", ev); }
+      });
 
       var dateCell = document.createElement("td");
       dateCell.className = "date-cell";
@@ -1089,6 +1491,24 @@
           ul.appendChild(li);
         });
       card.appendChild(ul);
+
+      if (squad.roteiros && squad.roteiros.length) {
+        var roteirosLabel = document.createElement("div");
+        roteirosLabel.className = "roteiros-label";
+        roteirosLabel.textContent = "Roteiros responsáveis";
+        card.appendChild(roteirosLabel);
+
+        var roteirosList = document.createElement("div");
+        roteirosList.className = "roteiros-list";
+        squad.roteiros.forEach(function (roteiro) {
+          var tag = document.createElement("span");
+          tag.className = "roteiro-tag";
+          tag.textContent = roteiro;
+          roteirosList.appendChild(tag);
+        });
+        card.appendChild(roteirosList);
+      }
+
       container.appendChild(card);
     });
   }
@@ -1126,17 +1546,23 @@
     document.getElementById("squadSelect").addEventListener("change", function (e) {
       state.filters.squadId = e.target.value;
       refreshAnalistaOptions();
+      refreshRoteiroOptions();
       render();
     });
     document.getElementById("analistaSelect").addEventListener("change", function (e) {
       state.filters.analistaId = e.target.value;
       render();
     });
+    document.getElementById("roteiroSelect").addEventListener("change", function (e) {
+      state.filters.roteiro = e.target.value;
+      render();
+    });
     document.getElementById("clearFilters").addEventListener("click", function () {
-      state.filters = { search: "", squadId: "", analistaId: "", types: TYPE_ORDER.slice() };
+      state.filters = { search: "", squadId: "", analistaId: "", roteiro: "", types: TYPE_ORDER.slice() };
       document.getElementById("searchInput").value = "";
       document.getElementById("squadSelect").value = "";
       refreshAnalistaOptions();
+      refreshRoteiroOptions();
       Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (chip) {
         chip.setAttribute("aria-pressed", "true");
       });
@@ -1164,40 +1590,75 @@
     document.getElementById("dayModalOverlay").addEventListener("click", function (e) {
       if (e.target === this) closeDayModal();
     });
+
+    document.getElementById("createEventBtn").addEventListener("click", function () {
+      openEventForm("create", null);
+    });
+    document.getElementById("eventForm").addEventListener("submit", handleFormSubmit);
+    document.getElementById("formDeleteBtn").addEventListener("click", handleFormDelete);
+    document.getElementById("formCancelBtn").addEventListener("click", closeEventForm);
+    document.getElementById("eventModalClose").addEventListener("click", closeEventForm);
+    document.getElementById("eventModalOverlay").addEventListener("click", function (e) {
+      if (e.target === this) closeEventForm();
+    });
+    document.getElementById("formSquad").addEventListener("change", refreshFormAnalistaOptions);
+
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeDayModal();
+      if (e.key !== "Escape") return;
+      if (!document.getElementById("eventModalOverlay").hidden) closeEventForm();
+      else closeDayModal();
     });
   }
 
-  function setSource(ok) {
+  function setSource(sourceKind) {
     var dot = document.getElementById("sourceDot");
     var text = document.getElementById("sourceText");
-    if (ok) {
-      dot.classList.remove("fallback");
-      text.textContent = "Dados carregados de data.json";
+    dot.classList.remove("fallback", "live-dot");
+    if (sourceKind === "sheets") {
+      dot.classList.add("live-dot");
+      text.textContent = "Conectado à planilha (Google Sheets) — leitura e gravação ao vivo";
+      state.online = true;
+    } else if (sourceKind === "file") {
+      text.textContent = "Dados carregados de data.json (Criar/Editar salvam só nesta sessão)";
+      state.online = false;
     } else {
       dot.classList.add("fallback");
-      text.textContent = "Exibindo dados de exemplo (data.json não encontrado)";
+      text.textContent = "Exibindo dados de exemplo (Criar/Editar salvam só nesta sessão)";
+      state.online = false;
     }
   }
 
-  function boot(data, loadedFromFile) {
+  function boot(data, sourceKind) {
     state.data = data;
     indexData(data);
     populateSelects();
+    populateFormStaticSelects();
     buildTypeChips();
     renderDirectory();
     wireControls();
-    setSource(loadedFromFile);
+    setSource(sourceKind);
     render();
   }
 
-  fetch("./data.json")
-    .then(function (res) {
-      if (!res.ok) throw new Error("not ok");
-      return res.json();
-    })
-    .then(function (data) { boot(data, true); })
-    .catch(function () { boot(SAMPLE_DATA, false); });
+  function loadInitialData() {
+    if (APPS_SCRIPT_URL) {
+      return fetch(APPS_SCRIPT_URL)
+        .then(function (res) {
+          if (!res.ok) throw new Error("not ok");
+          return res.json();
+        })
+        .then(function (data) { boot(data, "sheets"); })
+        .catch(function () { boot(SAMPLE_DATA, "sample"); });
+    }
+    return fetch("./data.json")
+      .then(function (res) {
+        if (!res.ok) throw new Error("not ok");
+        return res.json();
+      })
+      .then(function (data) { boot(data, "file"); })
+      .catch(function () { boot(SAMPLE_DATA, "sample"); });
+  }
+
+  loadInitialData();
 })();
 </script>

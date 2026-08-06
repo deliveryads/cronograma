@@ -1,8 +1,8 @@
 {
   "squads": [
-    { "id": "sq-alpha", "nome": "Squad Alpha" },
-    { "id": "sq-beta", "nome": "Squad Beta" },
-    { "id": "sq-gamma", "nome": "Squad Gamma" }
+    { "id": "sq-alpha", "nome": "Squad Alpha", "roteiros": ["Coração em Chamas", "Reencontro"] },
+    { "id": "sq-beta", "nome": "Squad Beta", "roteiros": ["Alma Livre", "Segunda Chance"] },
+    { "id": "sq-gamma", "nome": "Squad Gamma", "roteiros": ["Sob o Mesmo Céu", "Laços de Sangue"] }
   ],
   "analistas": [
     { "id": "an-01", "nome": "Camila Duarte", "squadId": "sq-alpha", "funcao": "Analista de Roteiros Pleno" },
