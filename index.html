@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cronograma de Responsabilidades</title>
+<title>Cronograma Roteiros</title>
 <style>
   :root {
     --bg: #f4f5f8;
@@ -725,12 +725,40 @@
   .form-actions-right { display: flex; gap: 8px; margin-left: auto; }
 
   .live-dot { background: var(--type-ponto); }
+
+  /* ---------- Theme toggle ---------- */
+  .theme-toggle {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 30;
+  }
+  .theme-toggle:hover { background: var(--surface-alt); }
+  .theme-toggle svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .theme-toggle .icon-moon { display: none; }
+  .theme-toggle[data-effective="dark"] .icon-sun { display: none; }
+  .theme-toggle[data-effective="dark"] .icon-moon { display: block; }
+
+  @media (max-width: 480px) {
+    .theme-toggle { right: 14px; bottom: 14px; width: 40px; height: 40px; }
+  }
 </style>
 
 <div class="app">
   <header class="header">
     <div>
-      <h1>Cronograma de Responsabilidades</h1>
+      <h1>Cronograma Roteiros</h1>
       <p class="subtitle">Consulte squads, analistas, férias, cursos, reuniões extraordinárias e datas importantes.</p>
     </div>
     <div class="source-note" id="sourceNote">
@@ -829,6 +857,16 @@
   </div>
 </div>
 
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar para tema escuro" title="Alternar tema claro/escuro">
+  <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"></path>
+  </svg>
+</button>
+
 <div class="modal-overlay" id="dayModalOverlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-header">
@@ -893,6 +931,47 @@
 <script>
 (function () {
   "use strict";
+
+  var THEME_KEY = "cronograma-theme";
+  var memoryTheme = null;
+
+  function getStoredTheme() {
+    try { return localStorage.getItem(THEME_KEY); } catch (e) { return memoryTheme; }
+  }
+  function setStoredTheme(value) {
+    memoryTheme = value;
+    try { localStorage.setItem(THEME_KEY, value); } catch (e) {}
+  }
+  function systemPrefersDark() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  function effectiveTheme() {
+    var stored = getStoredTheme();
+    if (stored === "light" || stored === "dark") return stored;
+    return systemPrefersDark() ? "dark" : "light";
+  }
+  function applyTheme(stored) {
+    if (stored === "light" || stored === "dark") {
+      document.documentElement.setAttribute("data-theme", stored);
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    var effective = effectiveTheme();
+    var btn = document.getElementById("themeToggle");
+    var label = effective === "dark" ? "Alternar para tema claro" : "Alternar para tema escuro";
+    btn.setAttribute("data-effective", effective);
+    btn.setAttribute("aria-label", label);
+    btn.setAttribute("title", label);
+  }
+  function initTheme() {
+    applyTheme(getStoredTheme());
+    document.getElementById("themeToggle").addEventListener("click", function () {
+      var next = effectiveTheme() === "dark" ? "light" : "dark";
+      setStoredTheme(next);
+      applyTheme(next);
+    });
+  }
+  initTheme();
 
   var TYPE_LABELS = {
     ferias: "Férias",
