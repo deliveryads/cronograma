@@ -467,7 +467,7 @@
     <h2>Conecte a planilha do Google Sheets</h2>
     <p>Nenhuma planilha configurada. Este calendário não exibe dados de exemplo — somente o que estiver na planilha.</p>
     <ol>
-      <li>Crie a planilha com as colunas de <code>eventos/modelo-planilha.csv</code> (cabeçalho na linha definida em <code>CONFIG.HEADER_ROW</code>).</li>
+      <li>Crie a planilha com as colunas de <code>eventos/modelo-planilha.csv</code> (o cabeçalho pode ficar em qualquer uma das 10 primeiras linhas).</li>
       <li>Em <strong>Compartilhar</strong>, defina <em>Qualquer pessoa com o link → Leitor</em>.</li>
       <li>Copie o ID da planilha (trecho entre <code>/d/</code> e <code>/edit</code> na URL) e cole em <code>CONFIG.SHEET_ID</code> neste arquivo.</li>
     </ol>
@@ -545,7 +545,8 @@
    *           A planilha precisa estar compartilhada como
    *           "Qualquer pessoa com o link → Leitor".
    * SHEET_NAME: nome da aba com os eventos (vazio = primeira aba).
-   * HEADER_ROW: linha onde está o cabeçalho (Mês, Data início, ...).
+   * HEADER_ROW: linha esperada do cabeçalho (Mês, Data início, ...). Se o
+   *             cabeçalho mudar de linha, a página procura nas linhas 1 a 10.
    * REFRESH_SECONDS: intervalo da atualização automática.
    * Também aceita na URL da página: ?planilha=ID&aba=Nome
    * ===================================================================== */
@@ -620,6 +621,7 @@
     filters: {},     // role -> value
     search: "",
     lastSig: null,
+    headerRow: Math.max(1, parseInt(CONFIG.HEADER_ROW, 10) || 1),
     loading: false
   };
 
@@ -700,8 +702,7 @@
   }
 
   /* ---------------- Leitura do Google Sheets ---------------- */
-  function sheetUrl(extra) {
-    var row = Math.max(1, parseInt(CONFIG.HEADER_ROW, 10) || 1);
+  function sheetUrl(extra, row) {
     return "https://docs.google.com/spreadsheets/d/" + encodeURIComponent(sheetId) +
       "/gviz/tq?headers=1" +
       (sheetName ? "&sheet=" + encodeURIComponent(sheetName) : "&gid=0") +
@@ -716,8 +717,8 @@
     return JSON.parse(text.slice(start, end + 1));
   }
 
-  function loadViaFetch() {
-    return fetch(sheetUrl("out:json") + "&_=" + Date.now(), { cache: "no-store" })
+  function loadViaFetch(row) {
+    return fetch(sheetUrl("out:json", row) + "&_=" + Date.now(), { cache: "no-store" })
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.text();
@@ -726,7 +727,7 @@
   }
 
   /* Alternativa sem CORS (JSONP) caso o navegador bloqueie o fetch. */
-  function loadViaScript() {
+  function loadViaScript(row) {
     return new Promise(function (resolve, reject) {
       var cb = "__gviz_cb_" + Date.now();
       var s = document.createElement("script");
@@ -734,23 +735,58 @@
       function cleanup() { clearTimeout(timer); delete window[cb]; s.remove(); }
       window[cb] = function (resp) { cleanup(); resolve(resp); };
       s.onerror = function () { cleanup(); reject(new Error("Não foi possível acessar a planilha.")); };
-      s.src = sheetUrl("out:json;responseHandler:" + cb) + "&_=" + Date.now();
+      s.src = sheetUrl("out:json;responseHandler:" + cb, row) + "&_=" + Date.now();
       document.head.appendChild(s);
     });
+  }
+
+  function fetchTable(row) {
+    return loadViaFetch(row)
+      .catch(function () { return loadViaScript(row); })
+      .then(function (resp) {
+        if (resp.status === "error") {
+          var msg = (resp.errors || []).map(function (e) { return e.detailed_message || e.message; }).join(" ");
+          throw new Error(msg || "Erro retornado pelo Google Sheets.");
+        }
+        return resp.table;
+      });
+  }
+
+  function hasHeader(table) {
+    var labels = (table.cols || []).map(function (c) { return norm(c.label); });
+    return ["nome", "inicio"].every(function (role) {
+      return ROLES[role].some(function (alias) { return labels.indexOf(alias) !== -1; });
+    });
+  }
+
+  /* Lê a partir da linha de cabeçalho conhecida; se ela não tiver as colunas
+   * Evento e Data início, procura o cabeçalho nas linhas 1 a 10. */
+  function fetchWithHeader() {
+    var tried = {};
+    var candidates = [state.headerRow];
+    for (var n = 1; n <= 10; n++) candidates.push(n);
+    var first = null;
+    function next(i) {
+      while (i < candidates.length && tried[candidates[i]]) i++;
+      if (i >= candidates.length) return Promise.resolve(first);
+      var row = candidates[i];
+      tried[row] = true;
+      return fetchTable(row).then(function (table) {
+        if (!first) first = { table: table, row: row };
+        return hasHeader(table) ? { table: table, row: row } : next(i + 1);
+      });
+    }
+    return next(0);
   }
 
   function load() {
     if (state.loading) return;
     state.loading = true;
     setSync("loading", "Atualizando…");
-    loadViaFetch()
-      .catch(loadViaScript)
-      .then(function (resp) {
-        if (resp.status === "error") {
-          var msg = (resp.errors || []).map(function (e) { return e.detailed_message || e.message; }).join(" ");
-          throw new Error(msg || "Erro retornado pelo Google Sheets.");
-        }
-        ingest(resp.table);
+    fetchWithHeader()
+      .then(function (res) {
+        state.headerRow = res.row;
+        ingest(res.table);
         $("errorBox").hidden = true;
         $("main").hidden = false;
         setSync("ok", "Atualizado às " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
@@ -782,7 +818,7 @@
 
   /* Converte a tabela do gviz em eventos. Nada é inferido além das datas. */
   function ingest(table) {
-    var sig = JSON.stringify(table);
+    var sig = state.headerRow + "|" + JSON.stringify(table);
     if (sig === state.lastSig) return;
     state.lastSig = sig;
 
@@ -806,7 +842,7 @@
       var cells = row.c || [];
       var hasAny = cells.some(function (c) { return c && cellText(c) !== ""; });
       if (!hasAny) return;
-      var line = r + (parseInt(CONFIG.HEADER_ROW, 10) || 1) + 1; // linha real na planilha
+      var line = r + state.headerRow + 1; // linha real na planilha
       var nome = roleIndex.nome != null ? cellText(cells[roleIndex.nome]).trim() : "";
       var ini = roleIndex.inicio != null ? parseDate(cells[roleIndex.inicio]) : null;
       var fimCell = roleIndex.fim != null ? cells[roleIndex.fim] : null;

@@ -15,8 +15,9 @@ da planilha consegue visualizá-la.
 
 ## Estrutura da planilha
 
-Linha 1: título livre (ex.: "DAI Eventual"). Linha 2: cabeçalho. Dados a partir da linha 3
-(ver `modelo-planilha.csv`).
+Cabeçalho (Mês, Data início, ...) em qualquer uma das 10 primeiras linhas — a página
+localiza sozinha. Linhas acima dele (título, linha em branco) são ignoradas.
+Dados logo abaixo do cabeçalho (ver `modelo-planilha.csv`).
 
 | Coluna | Uso na página |
 |---|---|
@@ -35,5 +36,5 @@ num aviso acima dos cards, com o número da linha.
 ## Configuração
 
 No topo do `<script>` em `index.html`, objeto `CONFIG`:
-`SHEET_ID`, `SHEET_NAME` (vazio = primeira aba), `HEADER_ROW` (linha do cabeçalho),
+`SHEET_ID`, `SHEET_NAME` (vazio = primeira aba), `HEADER_ROW` (linha esperada do cabeçalho),
 `REFRESH_SECONDS`. Para testar outra planilha sem editar: `?planilha=ID&aba=Nome`.
