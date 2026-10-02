@@ -2,9 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calendário de Eventos</title>
 <style>
+  /* Layout: menu lateral fixo (visões, filtros, legenda, dados) + área de conteúdo.
+     Cores de marca: troque --accent / --accent-soft / --accent-contrast. */
   :root {
     --bg: #f4f5f8;
     --surface: #ffffff;
@@ -16,21 +18,20 @@
     --accent: #3454d1;
     --accent-soft: #e8ecfd;
     --accent-contrast: #ffffff;
-    --ok: #0f7a5f;
     --warn: #b45309;
+    --backdrop: rgba(10, 12, 18, 0.45);
 
+    /* Legenda de status */
     --st-green: #0f7a5f;   --st-green-bg: #e2f5ef;
-    --st-amber: #b45309;   --st-amber-bg: #fdf1e0;
-    --st-blue: #1d4ed8;    --st-blue-bg: #e3ecfd;
-    --st-purple: #6d28d9;  --st-purple-bg: #efe7fd;
+    --st-amber: #a16207;   --st-amber-bg: #fdf3d6;
     --st-red: #b91c1c;     --st-red-bg: #fbe4e2;
-    --st-teal: #0e7490;    --st-teal-bg: #dff3f8;
-    --st-pink: #be185d;    --st-pink-bg: #fce7f1;
-    --st-gray: #4b5262;    --st-gray-bg: #e9ebf0;
+    --st-gray: #5b6270;    --st-gray-bg: #e9ebf0;
 
     --shadow: 0 1px 2px rgba(20, 24, 34, 0.04), 0 8px 24px -12px rgba(20, 24, 34, 0.12);
     --radius-sm: 6px;
     --radius-md: 10px;
+    --sidebar-w: 264px;
+    color-scheme: light;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -45,22 +46,16 @@
       --accent: #8199ff;
       --accent-soft: #262c47;
       --accent-contrast: #0d0e13;
-      --ok: #5fd3ac;
       --warn: #f0b458;
-
+      --backdrop: rgba(0, 0, 0, 0.6);
       --st-green: #5fd3ac;   --st-green-bg: #123028;
-      --st-amber: #f0b458;   --st-amber-bg: #3a2c15;
-      --st-blue: #8fabff;    --st-blue-bg: #1c2540;
-      --st-purple: #b79bfa;  --st-purple-bg: #2a2145;
+      --st-amber: #f2c75c;   --st-amber-bg: #3a3015;
       --st-red: #f2857e;     --st-red-bg: #3a1c1c;
-      --st-teal: #67d4ec;    --st-teal-bg: #12313a;
-      --st-pink: #f58fbf;    --st-pink-bg: #3a1a2b;
-      --st-gray: #b3b9c6;    --st-gray-bg: #2a2f3a;
-
+      --st-gray: #a3a9b8;    --st-gray-bg: #2a2f3a;
       --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+      color-scheme: dark;
     }
   }
-
   :root[data-theme="dark"] {
     --bg: #12141a;
     --surface: #1a1d25;
@@ -72,74 +67,132 @@
     --accent: #8199ff;
     --accent-soft: #262c47;
     --accent-contrast: #0d0e13;
-    --ok: #5fd3ac;
     --warn: #f0b458;
-
+    --backdrop: rgba(0, 0, 0, 0.6);
     --st-green: #5fd3ac;   --st-green-bg: #123028;
-    --st-amber: #f0b458;   --st-amber-bg: #3a2c15;
-    --st-blue: #8fabff;    --st-blue-bg: #1c2540;
-    --st-purple: #b79bfa;  --st-purple-bg: #2a2145;
+    --st-amber: #f2c75c;   --st-amber-bg: #3a3015;
     --st-red: #f2857e;     --st-red-bg: #3a1c1c;
-    --st-teal: #67d4ec;    --st-teal-bg: #12313a;
-    --st-pink: #f58fbf;    --st-pink-bg: #3a1a2b;
-    --st-gray: #b3b9c6;    --st-gray-bg: #2a2f3a;
-
+    --st-gray: #a3a9b8;    --st-gray-bg: #2a2f3a;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
   }
 
   * { box-sizing: border-box; }
-
   html, body {
     margin: 0;
-    padding: 0;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
     -webkit-font-smoothing: antialiased;
     max-width: 100%;
     overflow-x: hidden;
   }
-
-  body { min-height: 100vh; }
-
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
   }
-
   button, select, input { font-family: inherit; font-size: inherit; color: inherit; }
-
-  button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible {
+  button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, [tabindex]:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
-
   [hidden] { display: none !important; }
 
-  .app { max-width: 1240px; margin: 0 auto; padding: 28px 16px 64px; }
+  /* ---------- Estrutura ---------- */
+  .shell { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); min-height: 100vh; }
 
-  /* ---------- Header ---------- */
-  .header {
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 16px 24px;
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 12px 24px;
-    margin-bottom: 20px;
+    flex-direction: column;
+    gap: 22px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
   }
-  .header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
-  .header .subtitle { margin: 4px 0 0; color: var(--text-muted); font-size: 14px; }
+  .brand h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  .brand p { margin: 4px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 
-  .sync {
+  .side-section { display: grid; gap: 8px; }
+  .side-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    margin: 0;
+  }
+
+  .nav { display: grid; gap: 2px; }
+  .nav button {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 12px;
+    width: 100%;
+    border: 0;
+    background: none;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
     color: var(--text-muted);
+    text-align: left;
+    cursor: pointer;
   }
+  .nav button:hover { background: var(--surface-alt); color: var(--text); }
+  .nav button[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+  .nav svg { width: 16px; height: 16px; flex: none; }
+
+  .filters { display: grid; gap: 8px; }
+  .field { display: grid; gap: 4px; min-width: 0; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+  .field select, .field input {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 7px 9px;
+    font-size: 13px;
+  }
+  .linklike {
+    justify-self: start;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+  }
+
+  .legend { display: grid; gap: 2px; }
+  .legend button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    background: none;
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 13px;
+  }
+  .legend button:hover { background: var(--surface-alt); }
+  .legend button[aria-pressed="true"] { border-color: var(--c); background: var(--cbg); }
+  .legend .sw { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+  .legend .n { margin-left: auto; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+
+  .sync { display: grid; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .sync-line { display: flex; align-items: center; gap: 8px; }
   .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex: none; }
-  .sync-dot.ok { background: var(--ok); }
+  .sync-dot.ok { background: var(--st-green); }
   .sync-dot.err { background: var(--st-red); }
-  .sync-dot.loading { background: var(--warn); }
+  .sync-dot.loading { background: var(--st-amber); }
+  .sync-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 
   .btn {
     border: 1px solid var(--border);
@@ -150,43 +203,34 @@
     font-weight: 600;
     cursor: pointer;
     line-height: 1.2;
+    text-decoration: none;
+    color: var(--text);
   }
   .btn:hover { background: var(--surface-alt); }
-  a.btn { text-decoration: none; color: var(--text); }
   .btn.icon { padding: 7px 10px; }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
 
-  /* ---------- Toolbar ---------- */
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow);
-  }
+  /* ---------- Conteúdo ---------- */
+  .main { min-width: 0; padding: 24px 24px 64px; display: grid; gap: 16px; align-content: start; }
+  .content { display: grid; gap: 16px; min-width: 0; }
+  #view { min-width: 0; }
 
-  .toolbar { padding: 14px; margin-bottom: 16px; display: grid; gap: 12px; }
-
-  .toolbar-row {
+  .topbar { display: none; }
+  .view-head {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 10px 16px;
   }
+  .view-head h2 { font-size: 22px; font-weight: 750; letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+  .view-head .sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .controls .lbl { font-size: 12px; color: var(--text-muted); margin-right: 2px; }
 
-  .month-nav { display: flex; align-items: center; gap: 6px; }
-  .month-label {
-    font-size: 20px;
-    font-weight: 750;
-    letter-spacing: -0.01em;
-    min-width: 190px;
-    margin-left: 6px;
-  }
-
-  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
   .seg button {
     border: 0;
-    background: var(--surface);
+    background: none;
     padding: 7px 12px;
     font-size: 13px;
     font-weight: 600;
@@ -196,51 +240,28 @@
   .seg button + button { border-left: 1px solid var(--border); }
   .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
 
-  .filters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 10px;
-  }
-  .field { display: grid; gap: 4px; min-width: 0; }
-  .field label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-faint);
-  }
-  .field select, .field input {
-    width: 100%;
-    min-width: 0;
-    border: 1px solid var(--border);
+  .panel {
     background: var(--surface);
-    border-radius: var(--radius-sm);
-    padding: 7px 9px;
-    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
   }
-
-  .filter-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    font-size: 13px;
+  .notice { padding: 20px; font-size: 14px; line-height: 1.55; }
+  .notice h2 { font-size: 17px; margin: 0 0 8px; }
+  .notice ol { margin: 8px 0 0; padding-left: 20px; }
+  .notice code { background: var(--surface-alt); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  .notice.err { border-left: 4px solid var(--st-red); }
+  .warnline { font-size: 12px; color: var(--warn); line-height: 1.5; }
+  .preview-flag {
+    font-size: 12px;
     color: var(--text-muted);
+    background: var(--surface-alt);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
   }
-  .linklike {
-    border: 0;
-    background: none;
-    color: var(--accent);
-    font-weight: 600;
-    cursor: pointer;
-    padding: 0;
-    font-size: 13px;
-  }
+  .empty { padding: 28px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
-  .legend { display: flex; flex-wrap: wrap; gap: 6px; }
-
-  /* ---------- Badges ---------- */
   .badge {
     display: inline-flex;
     align-items: center;
@@ -254,49 +275,92 @@
     white-space: nowrap;
   }
   .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
-  button.badge { border: 1px solid transparent; cursor: pointer; }
-  button.badge[aria-pressed="true"] { border-color: var(--c); }
 
-  /* ---------- Calendar ---------- */
-  .calendar { overflow: hidden; margin-bottom: 24px; }
-  .dow {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    border-bottom: 1px solid var(--border);
-    background: var(--surface-alt);
+  .past { opacity: 0.5; }
+
+  /* ---------- Linha do tempo ---------- */
+  .tl-wrap { padding: 8px 0 4px; overflow: hidden; }
+  .tl-scroll { overflow-x: auto; overflow-y: hidden; padding: 0 20px; }
+  .tl { position: relative; }
+  .tl-axis, .tl-month, .tl-today, .tl-edge, .tl-stem, .tl-dot { pointer-events: none; }
+  .tl-axis { position: absolute; left: 0; right: 0; height: 2px; background: var(--border); }
+  .tl-month { position: absolute; width: 0; border-left: 1px solid var(--border); }
+  .tl-month span {
+    position: absolute;
+    left: 6px;
+    font-size: 12px;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    white-space: nowrap;
   }
-  .dow div {
-    padding: 8px 10px;
+  .tl-today { position: absolute; width: 0; border-left: 2px solid var(--accent); }
+  .tl-today span {
+    position: absolute;
+    left: -2px;
     font-size: 11px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
+    color: var(--accent-contrast);
+    background: var(--accent);
+    border-radius: 999px;
+    padding: 2px 8px;
+    white-space: nowrap;
   }
+  .tl-edge { position: absolute; font-size: 11px; color: var(--text-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tl-stem { position: absolute; width: 0; border-left: 1px dashed var(--c); }
+  .tl-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    border-radius: 50%;
+    background: var(--c);
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--c);
+  }
+  .tl-ev {
+    position: absolute;
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+  }
+  .tl-ev .lbl {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 650;
+    white-space: nowrap;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--cbg);
+    border: 1px solid transparent;
+  }
+  .tl-ev:hover .lbl { border-color: var(--c); }
+  .tl-ev .dur { display: block; height: 4px; border-radius: 2px; background: var(--c); margin-top: 3px; }
 
+  /* ---------- Calendário ---------- */
+  .calendar { overflow: hidden; }
+  .dow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--border); background: var(--surface-alt); }
+  .dow div { padding: 8px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
   .week { position: relative; min-height: 118px; border-bottom: 1px solid var(--border); }
   .week:last-child { border-bottom: 0; }
-
-  .week-bg {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-  }
+  .week-bg { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
   .day {
+    border: 0;
     border-right: 1px solid var(--border);
     padding: 6px 8px;
     cursor: pointer;
     background: transparent;
-    border-top: 0; border-bottom: 0; border-left: 0;
-    text-align: left;
     display: flex;
     align-items: flex-start;
     width: 100%;
   }
   .day:last-child { border-right: 0; }
   .day:hover { background: var(--surface-alt); }
-  .day.out { background: color-mix(in srgb, var(--surface-alt) 55%, transparent); }
+  .day.out { background: var(--surface-alt); }
   .day.out .num { color: var(--text-faint); }
   .day .num {
     display: inline-grid;
@@ -309,7 +373,6 @@
     font-variant-numeric: tabular-nums;
   }
   .day.today .num { background: var(--accent); color: var(--accent-contrast); }
-
   .week-fg {
     position: relative;
     display: grid;
@@ -319,7 +382,6 @@
     padding: 36px 0 8px;
     pointer-events: none;
   }
-
   .bar {
     pointer-events: auto;
     margin: 0 4px;
@@ -338,10 +400,8 @@
     cursor: pointer;
     min-width: 0;
   }
-  .bar:hover { filter: brightness(0.96); }
   .bar.cont-left { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; border-left-style: dashed; }
   .bar.cont-right { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
-
   .more {
     pointer-events: auto;
     margin: 0 4px;
@@ -354,58 +414,48 @@
     padding: 0 6px;
     cursor: pointer;
   }
-  .more:hover { color: var(--accent); }
 
-  /* ---------- Section / cards ---------- */
-  .section-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 6px 16px;
-    margin: 0 0 12px;
-  }
-  .section-head h2 { font-size: 18px; margin: 0; letter-spacing: -0.01em; }
-  .section-head .count { font-size: 13px; color: var(--text-muted); }
-
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
-
-  .card {
-    padding: 16px;
-    border-top: 3px solid var(--c);
-    display: grid;
-    gap: 12px;
-    align-content: start;
-    scroll-margin-top: 16px;
-  }
-  .card.flash { animation: flash 1.4s ease-out; }
-  @keyframes flash { 0% { box-shadow: 0 0 0 3px var(--c); } 100% { box-shadow: var(--shadow); } }
-
+  /* ---------- Cards ---------- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .card { padding: 16px; border-top: 3px solid var(--c); display: grid; gap: 12px; align-content: start; }
   .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .card h3 { font-size: 16px; margin: 0; line-height: 1.3; overflow-wrap: anywhere; }
-  .card .when {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-top: 4px;
-    font-variant-numeric: tabular-nums;
-  }
+  .card .when { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
   .card .when strong { color: var(--text); font-weight: 650; }
-
   .kv { display: grid; grid-template-columns: minmax(96px, max-content) 1fr; gap: 6px 14px; margin: 0; font-size: 13px; }
   .kv dt { color: var(--text-faint); font-weight: 600; }
   .kv dd { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
   .kv a { color: var(--accent); }
 
-  /* ---------- States ---------- */
-  .notice { padding: 22px; margin-bottom: 16px; font-size: 14px; line-height: 1.55; }
-  .notice h2 { font-size: 17px; margin: 0 0 8px; }
-  .notice ol { margin: 8px 0 0; padding-left: 20px; }
-  .notice code { background: var(--surface-alt); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
-  .notice.err { border-left: 4px solid var(--st-red); }
-  .warnline { font-size: 12px; color: var(--warn); }
-  .empty { padding: 28px; text-align: center; color: var(--text-muted); font-size: 14px; }
+  /* ---------- Lista ---------- */
+  .table-wrap { overflow-x: auto; }
+  table.list { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .list th, .list td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .list thead th {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-faint);
+    background: var(--surface-alt);
+    white-space: nowrap;
+  }
+  .list .grp th {
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 750;
+    color: var(--text);
+    padding-top: 16px;
+    border-bottom: 2px solid var(--border);
+  }
+  .list .grp .n { font-weight: 500; color: var(--text-faint); margin-left: 8px; }
+  .list tbody tr.row { cursor: pointer; }
+  .list tbody tr.row:hover td { background: var(--surface-alt); }
+  .list td.date { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .list td.name { font-weight: 650; }
+  .list td.long { min-width: 220px; white-space: pre-line; }
 
-  /* ---------- Dialog ---------- */
+  /* ---------- Diálogo ---------- */
   dialog {
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
@@ -416,7 +466,7 @@
     max-height: calc(100vh - 48px);
     box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.45);
   }
-  dialog::backdrop { background: rgba(10, 12, 18, 0.45); }
+  dialog::backdrop { background: var(--backdrop); }
   .dlg-head {
     display: flex;
     align-items: center;
@@ -432,9 +482,41 @@
   .dlg-head h2 { font-size: 15px; margin: 0; }
   .dlg-body { padding: 16px; display: grid; gap: 12px; }
 
-  /* ---------- Responsive ---------- */
+  .scrim { display: none; }
+
+  /* ---------- Responsivo ---------- */
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: minmax(0, 1fr); }
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      height: auto;
+      width: min(300px, 86vw);
+      z-index: 20;
+      transform: translateX(-100%);
+      visibility: hidden;
+      transition: transform 0.2s ease, visibility 0.2s;
+      padding-top: calc(20px + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .shell.menu-open .sidebar { transform: none; visibility: visible; box-shadow: var(--shadow); }
+    .shell.menu-open .scrim { display: block; position: fixed; inset: 0; background: var(--backdrop); z-index: 15; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: env(safe-area-inset-top, 0px);
+      z-index: 10;
+      background: var(--bg);
+      padding-block: 10px;
+    }
+    .topbar strong { font-size: 15px; }
+    .main { padding: 6px 16px 48px; }
+  }
   @media (max-width: 720px) {
-    .month-label { font-size: 17px; min-width: 0; }
     .week { min-height: 76px; }
     .week-fg { grid-auto-rows: 7px; row-gap: 3px; padding-top: 32px; }
     .bar { font-size: 0; padding: 0; margin: 0 2px; border-left-width: 0; background: var(--c); }
@@ -444,87 +526,110 @@
     .day { padding: 4px; }
     .day .num { font-size: 12px; min-width: 22px; height: 22px; }
     .dow div { padding: 6px 4px; text-align: center; }
-    .cards { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: minmax(0, 1fr); }
+    .view-head h2 { font-size: 19px; }
+  }
+
+  /* ---------- Impressão ---------- */
+  @media print {
+    .sidebar, .topbar, .scrim, .controls, .preview-flag, dialog { display: none !important; }
+    .shell { display: block; }
+    .main { padding: 0; }
+    .panel { box-shadow: none; }
+    .tl-scroll { overflow: visible; }
   }
 </style>
 </head>
 <body>
-<div class="app">
-  <header class="header">
-    <div>
+<div class="shell" id="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Menu">
+    <div class="brand">
       <h1>Calendário de Eventos</h1>
-      <p class="subtitle">Eventos de curta duração com oportunidades de venda de campanhas no digital</p>
+      <p>Eventos com oportunidades de venda de campanhas no digital</p>
     </div>
-    <div class="sync" aria-live="polite">
-      <span class="sync-dot" id="syncDot"></span>
-      <span id="syncText">Aguardando fonte de dados</span>
-      <button class="btn" id="btnRefresh" type="button" title="Atualizar agora">Atualizar</button>
-      <a class="btn" id="btnSheet" target="_blank" rel="noopener" hidden>Abrir planilha</a>
+
+    <section class="side-section" aria-labelledby="navTitle">
+      <h2 class="side-title" id="navTitle">Visualização</h2>
+      <nav class="nav" id="nav">
+        <button type="button" data-view="linha">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M1 8h14"/><circle cx="4" cy="8" r="1.8" fill="currentColor"/><circle cx="11" cy="8" r="1.8" fill="currentColor"/><path d="M4 6V3M11 10v3"/></svg>
+          Linha do tempo
+        </button>
+        <button type="button" data-view="calendario">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="12" rx="1.5"/><path d="M1.5 6.5h13M5 1v3M11 1v3"/></svg>
+          Calendário
+        </button>
+        <button type="button" data-view="cards">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg>
+          Cards
+        </button>
+        <button type="button" data-view="lista">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 3.5h9.5M5 8h9.5M5 12.5h9.5"/><circle cx="2" cy="3.5" r="0.9" fill="currentColor"/><circle cx="2" cy="8" r="0.9" fill="currentColor"/><circle cx="2" cy="12.5" r="0.9" fill="currentColor"/></svg>
+          Lista
+        </button>
+      </nav>
+    </section>
+
+    <section class="side-section" aria-labelledby="filterTitle">
+      <h2 class="side-title" id="filterTitle">Filtros</h2>
+      <div class="field">
+        <label for="fBusca">Busca</label>
+        <input id="fBusca" type="search" placeholder="Nome, observação…">
+      </div>
+      <div class="filters" id="filters"></div>
+      <button class="linklike" id="clearFilters" type="button" hidden>Limpar filtros</button>
+    </section>
+
+    <section class="side-section" aria-labelledby="legendTitle">
+      <h2 class="side-title" id="legendTitle">Legenda</h2>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <section class="side-section" aria-labelledby="syncTitle">
+      <h2 class="side-title" id="syncTitle">Dados</h2>
+      <div class="sync" aria-live="polite">
+        <div class="sync-line"><span class="sync-dot" id="syncDot"></span><span id="syncText">Aguardando fonte de dados</span></div>
+        <div class="sync-actions">
+          <button class="btn" id="btnRefresh" type="button">Atualizar</button>
+          <button class="btn" id="btnPrint" type="button">Imprimir / PDF</button>
+        </div>
+      </div>
+    </section>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="btn icon" id="menuBtn" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+      <strong>Calendário de Eventos</strong>
     </div>
-  </header>
 
-  <section class="panel notice" id="setup" hidden>
-    <h2>Conecte a planilha do Google Sheets</h2>
-    <p>Nenhuma planilha configurada. Este calendário não exibe dados de exemplo — somente o que estiver na planilha.</p>
-    <ol>
-      <li>Crie a planilha com as colunas de <code>eventos/modelo-planilha.csv</code> (o cabeçalho pode ficar em qualquer uma das 10 primeiras linhas).</li>
-      <li>Em <strong>Compartilhar</strong>, defina <em>Qualquer pessoa com o link → Leitor</em>.</li>
-      <li>Copie o ID da planilha (trecho entre <code>/d/</code> e <code>/edit</code> na URL) e cole em <code>CONFIG.SHEET_ID</code> neste arquivo.</li>
-    </ol>
-    <p>Para testar sem editar o arquivo, abra esta página com <code>?planilha=ID_DA_PLANILHA</code> no endereço.</p>
-  </section>
+    <div class="preview-flag" id="previewFlag" hidden></div>
 
-  <section class="panel notice err" id="errorBox" hidden></section>
-
-  <div id="main" hidden>
-    <section class="panel toolbar" aria-label="Navegação e filtros">
-      <div class="toolbar-row">
-        <div class="month-nav">
-          <button class="btn icon" id="prevMonth" type="button" aria-label="Mês anterior">‹</button>
-          <button class="btn" id="todayBtn" type="button">Hoje</button>
-          <button class="btn icon" id="nextMonth" type="button" aria-label="Próximo mês">›</button>
-          <span class="month-label" id="monthLabel"></span>
-        </div>
-        <div class="seg" role="group" aria-label="Visualização">
-          <button type="button" data-view="mes" aria-pressed="true">Mês</button>
-          <button type="button" data-view="todos" aria-pressed="false">Todos os meses</button>
-        </div>
-      </div>
-
-      <div class="filters" id="filters">
-        <div class="field">
-          <label for="fMes">Mês</label>
-          <select id="fMes"></select>
-        </div>
-        <div class="field">
-          <label for="fBusca">Busca</label>
-          <input id="fBusca" type="search" placeholder="Nome, local, observação…">
-        </div>
-        <!-- filtros por coluna gerados dinamicamente -->
-      </div>
-
-      <div class="filter-meta">
-        <div class="legend" id="legend"></div>
-        <button class="linklike" id="clearFilters" type="button" hidden>Limpar filtros</button>
-      </div>
+    <section class="panel notice" id="setup" hidden>
+      <h2>Conecte a planilha do Google Sheets</h2>
+      <p>Nenhuma planilha configurada. Este calendário não exibe dados de exemplo, somente o que estiver na planilha.</p>
+      <ol>
+        <li>Crie a planilha com as colunas de <code>eventos/modelo-planilha.csv</code>.</li>
+        <li>Em <strong>Compartilhar</strong>, defina <em>Qualquer pessoa com o link → Leitor</em>.</li>
+        <li>Cole o ID da planilha em <code>CONFIG.SHEET_ID</code> neste arquivo.</li>
+      </ol>
     </section>
 
-    <section class="panel calendar" id="calendar" aria-label="Calendário mensal">
-      <div class="dow">
-        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
-      </div>
-      <div id="weeks"></div>
-    </section>
+    <section class="panel notice err" id="errorBox" hidden></section>
 
-    <section aria-labelledby="cardsTitle">
-      <div class="section-head">
-        <h2 id="cardsTitle">Eventos</h2>
-        <span class="count" id="cardsCount"></span>
+    <div class="content" id="content" hidden>
+      <div class="view-head">
+        <div>
+          <h2 id="viewTitle"></h2>
+          <div class="sub" id="viewSub"></div>
+        </div>
+        <div class="controls" id="controls"></div>
       </div>
-      <div id="skipped" class="warnline" hidden></div>
-      <div class="cards" id="cards"></div>
-    </section>
-  </div>
+      <div id="warnings" class="warnline" hidden></div>
+      <div id="view"></div>
+    </div>
+  </main>
 </div>
 
 <dialog id="dlg" aria-labelledby="dlgTitle">
@@ -541,12 +646,11 @@
 
   /* =====================================================================
    * CONFIGURAÇÃO
-   * SHEET_ID: ID da planilha (ou a URL inteira — o ID é extraído).
-   *           A planilha precisa estar compartilhada como
-   *           "Qualquer pessoa com o link → Leitor".
-   * SHEET_NAME: nome da aba com os eventos (vazio = primeira aba).
-   * HEADER_ROW: linha esperada do cabeçalho (Mês, Data início, ...). Se o
-   *             cabeçalho mudar de linha, a página procura nas linhas 1 a 10.
+   * SHEET_ID: ID da planilha (ou a URL inteira). A planilha precisa estar
+   *           compartilhada como "Qualquer pessoa com o link → Leitor".
+   * SHEET_NAME: nome da aba (vazio = primeira aba).
+   * HEADER_ROW: linha esperada do cabeçalho. Se mudar, a página procura
+   *             nas linhas 1 a 10.
    * REFRESH_SECONDS: intervalo da atualização automática.
    * Também aceita na URL da página: ?planilha=ID&aba=Nome
    * ===================================================================== */
@@ -558,7 +662,7 @@
   };
 
   /* Colunas reconhecidas (comparação sem acento/maiúsculas).
-   * Qualquer outra coluna da planilha aparece automaticamente nos cards. */
+   * Qualquer outra coluna da planilha aparece automaticamente nos detalhes. */
   var ROLES = {
     nome:        ["evento", "nome do evento", "nome", "titulo"],
     inicio:      ["data inicio", "data de inicio", "inicio", "data"],
@@ -568,38 +672,28 @@
     local:       ["local", "cidade", "praca", "cidade/uf"],
     responsavel: ["responsavel", "responsavel comercial", "executivo", "owner"],
     transmissao: ["transmissao lf", "transmissao"],
-    /* "Mês" é derivado das datas no calendário; não é exibido nos cards. */
+    /* "Mês" é derivado das datas; não é exibido. */
     mes:         ["mes"]
   };
   var HIDDEN_ROLES = { nome: 1, inicio: 1, fim: 1, status: 1, mes: 1 };
-  /* Colunas que viram filtro, se existirem na planilha (além de Mês e Busca). */
   var FILTER_ROLES = [
     { role: "nome", label: "Evento" },
     { role: "status", label: "Status" },
-    { role: "categoria", label: "Categoria" },
     { role: "transmissao", label: "Transmissão LF" },
+    { role: "categoria", label: "Categoria" },
     { role: "local", label: "Local" },
     { role: "responsavel", label: "Responsável" }
   ];
 
-  /* Cores por status. Valores não listados recebem uma cor estável da paleta. */
-  var STATUS_COLORS = {
-    "confirmado": "green",
-    "vendido": "purple",
-    "fechado": "purple",
-    "em negociacao": "blue",
-    "negociacao": "blue",
-    "proposta enviada": "teal",
-    "em prospeccao": "teal",
-    "prospeccao": "teal",
-    "a confirmar": "amber",
-    "previsto": "amber",
-    "em aberto": "amber",
-    "aberto": "amber",
-    "cancelado": "red",
-    "adiado": "gray"
-  };
-  var PALETTE = ["blue", "teal", "purple", "pink", "amber", "green", "gray"];
+  /* Legenda fixa. Qualquer outro valor de Status vai para "Outros" (cinza). */
+  var LEGEND = [
+    { key: "confirmado", label: "Confirmado", color: "green" },
+    { key: "a confirmar", label: "A confirmar", color: "amber" },
+    { key: "cancelado", label: "Cancelado", color: "red" },
+    { key: "outros", label: "Outros", color: "gray" }
+  ];
+
+  var VIEWS = { linha: "Linha do tempo", calendario: "Calendário", cards: "Cards", lista: "Lista" };
 
   var MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
     "agosto", "setembro", "outubro", "novembro", "dezembro"];
@@ -610,15 +704,19 @@
   var params = new URLSearchParams(location.search);
   var sheetId = extractId(params.get("planilha") || CONFIG.SHEET_ID);
   var sheetName = params.get("aba") || CONFIG.SHEET_NAME;
+  var SNAPSHOT = window.__SNAPSHOT__ || null;
 
   var state = {
     events: [],
-    columns: [],     // [{label, role}]
-    roleIndex: {},   // role -> column index
+    columns: [],
+    roleIndex: {},
     skipped: [],
+    view: "linha",
     month: startOfMonth(new Date()),
-    view: "mes",
-    filters: {},     // role -> value
+    cardsAll: false,
+    tlMonths: 1,
+    filters: {},
+    statusCat: "",
     search: "",
     lastSig: null,
     headerRow: Math.max(1, parseInt(CONFIG.HEADER_ROW, 10) || 1),
@@ -645,28 +743,31 @@
   }
   function startOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
   function addMonths(d, n) { return new Date(d.getFullYear(), d.getMonth() + n, 1); }
+  function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
   function sameDay(a, b) { return a.getTime() === b.getTime(); }
   function today() { var t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); }
   function dayDiff(a, b) { return Math.round((b - a) / DAY); }
-  function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
   function monthKey(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
   function monthName(d) { return MONTHS[d.getMonth()] + " de " + d.getFullYear(); }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-  function fmtDate(d) {
-    return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
-  }
-  function fmtShort(d) { return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0"); }
-  function hash(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function fmtDate(d) { return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear(); }
+  function fmtShort(d) { return pad(d.getDate()) + "/" + pad(d.getMonth() + 1); }
+  function overlaps(e, from, to) { return e.inicio <= to && e.fim >= from; }
+  function isPast(e) { return e.fim < today(); }
+  function countText(n) { return n + (n === 1 ? " evento" : " eventos"); }
 
-  function colorFor(status) {
-    var key = norm(status);
-    if (!key) return "gray";
-    if (STATUS_COLORS[key]) return STATUS_COLORS[key];
-    return PALETTE[hash(key) % PALETTE.length];
+  function statusCat(status) {
+    var k = norm(status);
+    for (var i = 0; i < LEGEND.length - 1; i++) if (LEGEND[i].key === k) return k;
+    return "outros";
   }
-  function colorStyle(name) { return "--c:var(--st-" + name + ");--cbg:var(--st-" + name + "-bg)"; }
+  function colorStyle(status) {
+    var c = statusCat(status);
+    var name = LEGEND.filter(function (l) { return l.key === c; })[0].color;
+    return "--c:var(--st-" + name + ");--cbg:var(--st-" + name + "-bg)";
+  }
 
-  /* Converte um valor da planilha em data (ou null). */
   function parseDate(cell) {
     if (!cell) return null;
     var v = cell.v;
@@ -687,8 +788,6 @@
     var dt = new Date(y, mo, d);
     return dt.getFullYear() === y && dt.getMonth() === mo && dt.getDate() === d ? dt : null;
   }
-
-  /* Texto de exibição de uma célula, respeitando a formatação da planilha. */
   function cellText(cell) {
     if (!cell) return "";
     if (typeof cell.v === "string" && /^Date\(/.test(cell.v)) {
@@ -709,23 +808,17 @@
       "&range=" + encodeURIComponent("A" + row + ":ZZ") +
       "&tqx=" + extra;
   }
-
   function parseGviz(text) {
     var start = text.indexOf("{");
     var end = text.lastIndexOf("}");
     if (start < 0 || end < 0) throw new Error("Resposta inesperada do Google Sheets.");
     return JSON.parse(text.slice(start, end + 1));
   }
-
   function loadViaFetch(row) {
     return fetch(sheetUrl("out:json", row) + "&_=" + Date.now(), { cache: "no-store" })
-      .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.text();
-      })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
       .then(parseGviz);
   }
-
   /* Alternativa sem CORS (JSONP) caso o navegador bloqueie o fetch. */
   function loadViaScript(row) {
     return new Promise(function (resolve, reject) {
@@ -739,7 +832,6 @@
       document.head.appendChild(s);
     });
   }
-
   function fetchTable(row) {
     return loadViaFetch(row)
       .catch(function () { return loadViaScript(row); })
@@ -751,16 +843,14 @@
         return resp.table;
       });
   }
-
   function hasHeader(table) {
     var labels = (table.cols || []).map(function (c) { return norm(c.label); });
     return ["nome", "inicio"].every(function (role) {
       return ROLES[role].some(function (alias) { return labels.indexOf(alias) !== -1; });
     });
   }
-
-  /* Lê a partir da linha de cabeçalho conhecida; se ela não tiver as colunas
-   * Evento e Data início, procura o cabeçalho nas linhas 1 a 10. */
+  /* Lê a partir da linha de cabeçalho conhecida; se ela não tiver Evento e
+   * Data início, procura o cabeçalho nas linhas 1 a 10. */
   function fetchWithHeader() {
     var tried = {};
     var candidates = [state.headerRow];
@@ -786,9 +876,9 @@
     fetchWithHeader()
       .then(function (res) {
         state.headerRow = res.row;
-        ingest(res.table);
         $("errorBox").hidden = true;
-        $("main").hidden = false;
+        $("content").hidden = false;
+        ingest(res.table);
         setSync("ok", "Atualizado às " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
       })
       .catch(function (err) {
@@ -797,14 +887,11 @@
       })
       .then(function () { state.loading = false; });
   }
-
   function setSync(kind, text) {
     $("syncDot").className = "sync-dot " + kind;
     $("syncText").textContent = text;
   }
-
   function showError(err) {
-    // Se já há dados carregados, mantém a tela e só sinaliza no indicador.
     if (state.lastSig) return;
     var box = $("errorBox");
     box.hidden = false;
@@ -816,7 +903,7 @@
       "<li>Confira o ID configurado: <code>" + esc(sheetId) + "</code>.</li></ol>";
   }
 
-  /* Converte a tabela do gviz em eventos. Nada é inferido além das datas. */
+  /* Converte a tabela em eventos. Nada é inferido além das datas. */
   function ingest(table) {
     var sig = state.headerRow + "|" + JSON.stringify(table);
     if (sig === state.lastSig) return;
@@ -842,7 +929,7 @@
       var cells = row.c || [];
       var hasAny = cells.some(function (c) { return c && cellText(c) !== ""; });
       if (!hasAny) return;
-      var line = r + state.headerRow + 1; // linha real na planilha
+      var line = r + state.headerRow + 1;
       var nome = roleIndex.nome != null ? cellText(cells[roleIndex.nome]).trim() : "";
       var ini = roleIndex.inicio != null ? parseDate(cells[roleIndex.inicio]) : null;
       var fimCell = roleIndex.fim != null ? cells[roleIndex.fim] : null;
@@ -859,7 +946,7 @@
         var txt = cellText(cells[i]).trim();
         if (col.role) values[col.role] = txt;
         if (HIDDEN_ROLES[col.role]) return;
-        if (txt) fields.push({ label: col.label, value: txt });
+        fields.push({ label: col.label, value: txt });
       });
 
       events.push({
@@ -879,7 +966,7 @@
     var missing = ["nome", "inicio"].filter(function (r) { return roleIndex[r] == null; });
     if (missing.length) {
       skipped.unshift("Colunas obrigatórias não encontradas: " +
-        missing.map(function (r) { return r === "nome" ? "Evento" : "Data Início"; }).join(", "));
+        missing.map(function (r) { return r === "nome" ? "Evento" : "Data início"; }).join(", "));
     }
 
     state.columns = cols;
@@ -893,8 +980,7 @@
   /* ---------------- Filtros ---------------- */
   function buildFilters() {
     var wrap = $("filters");
-    Array.prototype.slice.call(wrap.querySelectorAll("[data-dyn]")).forEach(function (n) { n.remove(); });
-
+    wrap.innerHTML = "";
     FILTER_ROLES.forEach(function (f) {
       if (state.roleIndex[f.role] == null) return;
       var set = {};
@@ -905,14 +991,12 @@
       var opts = Object.keys(set).sort(function (a, b) { return a.localeCompare(b, "pt-BR"); });
       var current = state.filters[f.role] || "";
       if (current && !set[current]) { delete state.filters[f.role]; current = ""; }
-
+      var label = f.role === "nome" ? f.label : state.columns[state.roleIndex[f.role]].label;
       var div = document.createElement("div");
       div.className = "field";
-      div.setAttribute("data-dyn", "");
-      var label = state.columns[state.roleIndex[f.role]].label;
-      div.innerHTML = '<label for="f_' + f.role + '">' + esc(f.role === "nome" ? f.label : label) + "</label>" +
+      div.innerHTML = '<label for="f_' + f.role + '">' + esc(label) + "</label>" +
         '<select id="f_' + f.role + '"><option value="">Todos</option>' +
-        opts.map(function (o) { return '<option' + (o === current ? " selected" : "") + ' value="' + esc(o) + '">' + esc(o) + "</option>"; }).join("") +
+        opts.map(function (o) { return "<option" + (o === current ? " selected" : "") + ' value="' + esc(o) + '">' + esc(o) + "</option>"; }).join("") +
         "</select>";
       div.querySelector("select").addEventListener("change", function (ev) {
         if (ev.target.value) state.filters[f.role] = ev.target.value; else delete state.filters[f.role];
@@ -922,93 +1006,206 @@
     });
   }
 
-  function buildMonthSelect() {
-    var keys = {};
-    state.events.forEach(function (e) {
-      for (var m = startOfMonth(e.inicio); m <= e.fim; m = addMonths(m, 1)) keys[monthKey(m)] = m;
-    });
-    keys[monthKey(state.month)] = state.month;
-    keys[monthKey(startOfMonth(new Date()))] = startOfMonth(new Date());
-    var list = Object.keys(keys).sort();
-    var sel = $("fMes");
-    sel.innerHTML = list.map(function (k) {
-      var d = keys[k];
-      var n = countInMonth(d);
-      return '<option value="' + k + '">' + esc(cap(monthName(d))) + (n ? " (" + n + ")" : "") + "</option>";
-    }).join("");
-    sel.value = monthKey(state.month);
-    sel.disabled = state.view === "todos";
-  }
-
-  function matches(e) {
+  function matches(e, ignoreLegend) {
     for (var role in state.filters) {
       var v = role === "nome" ? e.nome : (e.values[role] || "");
       if (v !== state.filters[role]) return false;
     }
+    if (!ignoreLegend && state.statusCat && statusCat(e.status) !== state.statusCat) return false;
     if (state.search && e.haystack.indexOf(state.search) === -1) return false;
     return true;
   }
-  function overlaps(e, from, to) { return e.inicio <= to && e.fim >= from; }
-  function countInMonth(m) {
-    var from = m, to = addDays(addMonths(m, 1), -1);
-    return state.events.filter(function (e) { return matches(e) && overlaps(e, from, to); }).length;
+  function anyFilter() { return Object.keys(state.filters).length || state.search || state.statusCat; }
+
+  /* Período exibido por visão: [de, até] ou null (tudo). */
+  function timelineRange() {
+    var from = today();
+    var to = addDays(new Date(from.getFullYear(), from.getMonth() + state.tlMonths, from.getDate()), -1);
+    return [from, to];
+  }
+  function viewRange() {
+    if (state.view === "linha") return timelineRange();
+    if (state.view === "calendario" || (state.view === "cards" && !state.cardsAll)) {
+      return [state.month, addDays(addMonths(state.month, 1), -1)];
+    }
+    return null;
+  }
+  function inRange(list, range) {
+    return range ? list.filter(function (e) { return overlaps(e, range[0], range[1]); }) : list;
   }
 
   /* ---------------- Render ---------------- */
   function render() {
-    var filtered = state.events.filter(matches);
-    var mFrom = state.month;
-    var mTo = addDays(addMonths(state.month, 1), -1);
+    var filtered = state.events.filter(function (e) { return matches(e); });
+    var range = viewRange();
+    var scoped = inRange(filtered, range);
 
-    $("monthLabel").textContent = cap(monthName(state.month));
-    document.querySelectorAll(".seg button").forEach(function (b) {
-      b.setAttribute("aria-pressed", String(b.getAttribute("data-view") === state.view));
+    document.querySelectorAll("#nav button").forEach(function (b) {
+      if (b.getAttribute("data-view") === state.view) b.setAttribute("aria-current", "page");
+      else b.removeAttribute("aria-current");
     });
-    buildMonthSelect();
+    $("clearFilters").hidden = !anyFilter();
 
-    var activeFilters = Object.keys(state.filters).length + (state.search ? 1 : 0);
-    $("clearFilters").hidden = activeFilters === 0;
+    renderLegend(inRange(state.events.filter(function (e) { return matches(e, true); }), range));
+    renderHead(scoped, range);
+    renderWarnings();
 
-    var list = state.view === "todos" ? filtered : filtered.filter(function (e) { return overlaps(e, mFrom, mTo); });
-    renderLegend(list);
-    renderCalendar(filtered);
-
-    $("cardsTitle").textContent = state.view === "todos" ? "Todos os eventos" : "Eventos de " + monthName(state.month);
-    $("cardsCount").textContent = list.length + (list.length === 1 ? " evento" : " eventos") +
-      (activeFilters ? " · filtros ativos" : "");
-    $("cards").innerHTML = list.length
-      ? list.map(function (e) { return cardHtml(e, "card-" + e.id); }).join("")
-      : '<div class="panel empty">Nenhum evento ' + (activeFilters ? "com os filtros selecionados" : (state.view === "todos" ? "na planilha" : "neste mês")) + ".</div>";
-
-    var sk = $("skipped");
-    sk.hidden = !state.skipped.length;
-    sk.textContent = state.skipped.length
-      ? "Linhas da planilha não exibidas: " + state.skipped.join("; ") + "."
-      : "";
+    var v = $("view");
+    if (state.view === "linha") v.innerHTML = timelineHtml(scoped, range);
+    else if (state.view === "calendario") v.innerHTML = calendarHtml(filtered);
+    else if (state.view === "cards") v.innerHTML = cardsHtml(scoped);
+    else v.innerHTML = listHtml(scoped);
 
     writeHash();
   }
 
-  function renderLegend(filtered) {
-    if (state.roleIndex.status == null) { $("legend").innerHTML = ""; return; }
+  function renderHead(scoped, range) {
+    var title = VIEWS[state.view];
+    var sub = "";
+    var ctl = "";
+    if (state.view === "linha") {
+      sub = "De " + fmtDate(range[0]) + " a " + fmtDate(range[1]) + " · " + countText(scoped.length);
+      ctl = '<span class="lbl">Período</span><div class="seg" role="group" aria-label="Período">' +
+        [1, 2, 3].map(function (n) {
+          return '<button type="button" data-tl="' + n + '" aria-pressed="' + (state.tlMonths === n) + '">' + n + (n === 1 ? " mês" : " meses") + "</button>";
+        }).join("") + "</div>";
+    } else if (state.view === "calendario" || state.view === "cards") {
+      var all = state.view === "cards" && state.cardsAll;
+      title = all ? "Todos os meses" : cap(monthName(state.month));
+      sub = VIEWS[state.view] + " · " + countText(scoped.length);
+      ctl = '<button class="btn icon" type="button" data-nav="-1" aria-label="Mês anterior">‹</button>' +
+        '<button class="btn" type="button" data-nav="0">Hoje</button>' +
+        '<button class="btn icon" type="button" data-nav="1" aria-label="Próximo mês">›</button>';
+      if (state.view === "cards") {
+        ctl += '<div class="seg" role="group" aria-label="Período dos cards">' +
+          '<button type="button" data-all="0" aria-pressed="' + !all + '">Mês</button>' +
+          '<button type="button" data-all="1" aria-pressed="' + all + '">Todos</button></div>';
+      }
+    } else {
+      sub = countText(scoped.length) + " · agrupados por mês de início";
+    }
+    $("viewTitle").textContent = title;
+    $("viewSub").textContent = sub;
+    $("controls").innerHTML = ctl;
+  }
+
+  function renderWarnings() {
+    var msgs = [];
+    if (state.skipped.length) msgs.push("Linhas da planilha não exibidas: " + state.skipped.join("; ") + ".");
+    var other = {};
+    state.events.forEach(function (e) {
+      if (statusCat(e.status) === "outros") { var k = e.status || "(vazio)"; other[k] = (other[k] || 0) + 1; }
+    });
+    var keys = Object.keys(other);
+    if (keys.length) {
+      msgs.push("Status fora da legenda (exibidos em cinza): " +
+        keys.map(function (k) { return k + " (" + other[k] + ")"; }).join(", ") + ".");
+    }
+    $("warnings").hidden = !msgs.length;
+    $("warnings").innerHTML = msgs.map(esc).join("<br>");
+  }
+
+  function renderLegend(scoped) {
     var counts = {};
-    filtered.forEach(function (e) { var s = e.status || "Sem status"; counts[s] = (counts[s] || 0) + 1; });
-    var active = state.filters.status || "";
-    var all = {};
-    state.events.forEach(function (e) { if (e.status) all[e.status] = true; });
-    $("legend").innerHTML = Object.keys(all).sort(function (a, b) { return a.localeCompare(b, "pt-BR"); }).map(function (s) {
-      return '<button type="button" class="badge" data-status="' + esc(s) + '" aria-pressed="' + (active === s) + '" style="' + colorStyle(colorFor(s)) + '">' +
-        esc(s) + " · " + (counts[s] || 0) + "</button>";
+    scoped.forEach(function (e) { var c = statusCat(e.status); counts[c] = (counts[c] || 0) + 1; });
+    var hasOther = state.events.some(function (e) { return statusCat(e.status) === "outros"; });
+    $("legend").innerHTML = LEGEND.filter(function (l) {
+      return l.key !== "outros" || hasOther;
+    }).map(function (l) {
+      return '<button type="button" data-cat="' + l.key + '" aria-pressed="' + (state.statusCat === l.key) +
+        '" style="--c:var(--st-' + l.color + ');--cbg:var(--st-' + l.color + '-bg)"><span class="sw"></span>' +
+        esc(l.label) + '<span class="n">' + (counts[l.key] || 0) + "</span></button>";
     }).join("");
   }
 
-  function renderCalendar(filtered) {
+  function rangeText(e) {
+    if (sameDay(e.inicio, e.fim)) return fmtDate(e.inicio);
+    var sameYear = e.inicio.getFullYear() === e.fim.getFullYear();
+    return (sameYear ? fmtShort(e.inicio) : fmtDate(e.inicio)) + " a " + fmtDate(e.fim);
+  }
+  function emptyHtml(what) {
+    return '<div class="panel empty">Nenhum evento ' + (anyFilter() ? "com os filtros selecionados" : what) + ".</div>";
+  }
+
+  /* ---------- Linha do tempo ---------- */
+  var measureCtx = null;
+  function labelWidth(t) {
+    if (!measureCtx) {
+      measureCtx = document.createElement("canvas").getContext("2d");
+      measureCtx.font = "650 13px " + getComputedStyle(document.body).fontFamily;
+    }
+    return Math.ceil(measureCtx.measureText(t).width) + 30;
+  }
+
+  function timelineHtml(list, range) {
+    var from = range[0], to = range[1];
+    var days = dayDiff(from, to) + 1;
+    var avail = Math.max(300, ($("content").clientWidth || 800) - 42);
+    var pxDay = Math.max(avail / days, 12);
+    var width = Math.round(pxDay * days);
+    function x(d) { return Math.round(Math.min(Math.max(dayDiff(from, d), 0), days) * pxDay); }
+
+    // Rótulos em faixas, alternando acima/abaixo da linha, sem sobreposição.
+    var ROW = 46;
+    var lanesEnd = [];
+    var items = list.map(function (e) {
+      var x0 = x(e.inicio < from ? from : e.inicio);
+      var x1 = x(addDays(e.fim > to ? to : e.fim, 1));
+      var lane = 0;
+      while (lanesEnd[lane] != null && lanesEnd[lane] + 12 > x0) lane++;
+      lanesEnd[lane] = x0 + Math.max(labelWidth(e.nome), x1 - x0);
+      return { e: e, x0: x0, x1: x1, lane: lane, clipped: e.inicio < from };
+    });
+    width = Math.max(width, Math.max.apply(null, lanesEnd.concat([0])) + 8);
+    var above = Math.max(1, Math.ceil(lanesEnd.length / 2));
+    var below = Math.max(1, Math.floor(lanesEnd.length / 2));
+    var axisY = 30 + above * ROW + 10;
+    var height = axisY + 18 + below * ROW + 30;
+
+    var html = '<div class="panel tl-wrap"><div class="tl-scroll"><div class="tl" style="width:' + width + "px;height:" + height + 'px">';
+    html += '<div class="tl-axis" style="top:' + axisY + 'px"></div>';
+
+    for (var m = startOfMonth(from); m <= to; m = addMonths(m, 1)) {
+      var first = m <= from;
+      html += '<div class="tl-month" style="left:' + x(first ? from : m) + "px;top:0;height:" + height + 'px"><span style="top:4px">' +
+        esc(MONTHS[m.getMonth()] + (first || m.getMonth() === 0 ? " " + m.getFullYear() : "")) + "</span></div>";
+    }
+
+    var t = today();
+    if (t >= from && t <= to) {
+      var tx = x(t) + Math.round(pxDay / 2);
+      html += '<div class="tl-today" style="left:' + tx + "px;top:" + (axisY - 7) + 'px;height:16px"><span style="top:' + (height - axisY - 16) + 'px">Hoje · ' + fmtShort(t) + "</span></div>";
+    }
+    html += '<div class="tl-edge" style="right:0;top:' + (height - 22) + 'px">até ' + fmtShort(to) + "</div>";
+
+    items.forEach(function (it) {
+      var up = it.lane % 2 === 0;
+      var level = Math.floor(it.lane / 2);
+      var y = up ? axisY - 10 - (level + 1) * ROW + 4 : axisY + 18 + level * ROW;
+      var dotX = it.x0 + Math.round(pxDay / 2);
+      var style = colorStyle(it.e.status);
+      var stemTop = up ? y + 34 : axisY;
+      var stemH = up ? axisY - stemTop : y - axisY;
+      if (stemH > 0) html += '<div class="tl-stem" style="' + style + ";left:" + dotX + "px;top:" + stemTop + "px;height:" + stemH + 'px"></div>';
+      if (!it.clipped) html += '<div class="tl-dot" style="' + style + ";left:" + dotX + "px;top:" + (axisY - 5) + 'px"></div>';
+      var title = it.e.nome + " — " + rangeText(it.e) + (it.e.status ? " · " + it.e.status : "");
+      html += '<button type="button" class="tl-ev" data-ev="' + it.e.id + '" title="' + esc(title) + '" style="' + style +
+        ";left:" + it.x0 + "px;top:" + y + 'px"><span class="lbl">' + esc(it.e.nome) + '</span><span class="dur" style="width:' +
+        Math.max(it.x1 - it.x0, 8) + 'px"></span></button>';
+    });
+
+    html += "</div></div></div>";
+    return html + (list.length ? "" : emptyHtml("neste período"));
+  }
+
+  /* ---------- Calendário ---------- */
+  function calendarHtml(filtered) {
     var first = state.month;
     var gridStart = addDays(first, -first.getDay());
     var last = addDays(addMonths(first, 1), -1);
     var gridEnd = addDays(last, 6 - last.getDay());
     var t = today();
-    var html = "";
+    var html = '<section class="panel calendar" aria-label="Calendário mensal"><div class="dow"><div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div></div>';
 
     for (var ws = gridStart; ws <= gridEnd; ws = addDays(ws, 7)) {
       var we = addDays(ws, 6);
@@ -1018,8 +1215,7 @@
         return { e: e, c0: dayDiff(ws, s), c1: dayDiff(ws, f), contL: e.inicio < ws, contR: e.fim > we };
       });
       segs.sort(function (a, b) { return a.c0 - b.c0 || (b.c1 - b.c0) - (a.c1 - a.c0); });
-
-      var lanes = []; // lanes[l] = última coluna ocupada
+      var lanes = [];
       var hidden = [0, 0, 0, 0, 0, 0, 0];
       segs.forEach(function (sg) {
         var l = 0;
@@ -1028,52 +1224,79 @@
         sg.lane = l;
         if (l >= MAX_LANES) for (var c = sg.c0; c <= sg.c1; c++) hidden[c]++;
       });
-
       var bg = "";
       for (var i = 0; i < 7; i++) {
         var d = addDays(ws, i);
         var cls = "day" + (d.getMonth() !== first.getMonth() ? " out" : "") + (sameDay(d, t) ? " today" : "");
         bg += '<button type="button" class="' + cls + '" data-day="' + d.getTime() + '" aria-label="' + esc(fmtDate(d)) + '"><span class="num">' + d.getDate() + "</span></button>";
       }
-
       var fg = "";
       segs.forEach(function (sg) {
         if (sg.lane >= MAX_LANES) return;
-        var cls = "bar" + (sg.contL ? " cont-left" : "") + (sg.contR ? " cont-right" : "");
+        var cls = "bar" + (sg.contL ? " cont-left" : "") + (sg.contR ? " cont-right" : "") + (isPast(sg.e) ? " past" : "");
         var title = sg.e.nome + " — " + rangeText(sg.e) + (sg.e.status ? " · " + sg.e.status : "");
         fg += '<button type="button" class="' + cls + '" data-ev="' + sg.e.id + '" title="' + esc(title) + '" style="grid-column:' +
-          (sg.c0 + 1) + " / " + (sg.c1 + 2) + ";grid-row:" + (sg.lane + 1) + ";" + colorStyle(colorFor(sg.e.status)) + '">' + esc(sg.e.nome) + "</button>";
+          (sg.c0 + 1) + " / " + (sg.c1 + 2) + ";grid-row:" + (sg.lane + 1) + ";" + colorStyle(sg.e.status) + '">' + esc(sg.e.nome) + "</button>";
       });
       for (var h = 0; h < 7; h++) {
         if (!hidden[h]) continue;
         fg += '<button type="button" class="more" data-day="' + addDays(ws, h).getTime() + '" style="grid-column:' + (h + 1) + ";grid-row:" + (MAX_LANES + 1) + '">+' + hidden[h] + " mais</button>";
       }
-
       html += '<div class="week"><div class="week-bg">' + bg + '</div><div class="week-fg">' + fg + "</div></div>";
     }
-    $("weeks").innerHTML = html;
+    return html + "</section>";
   }
 
-  function rangeText(e) {
-    if (sameDay(e.inicio, e.fim)) return fmtDate(e.inicio);
-    var sameYear = e.inicio.getFullYear() === e.fim.getFullYear();
-    return (sameYear ? fmtShort(e.inicio) : fmtDate(e.inicio)) + " a " + fmtDate(e.fim);
-  }
-
-  function cardHtml(e, domId) {
+  /* ---------- Cards ---------- */
+  function cardHtml(e) {
     var days = dayDiff(e.inicio, e.fim) + 1;
-    var col = colorFor(e.status);
-    var dl = e.fields.map(function (f) {
+    var dl = e.fields.filter(function (f) { return f.value; }).map(function (f) {
       var v = /^https?:\/\/\S+$/i.test(f.value)
         ? '<a href="' + esc(f.value) + '" target="_blank" rel="noopener">' + esc(f.value) + "</a>"
         : esc(f.value);
       return "<dt>" + esc(f.label) + "</dt><dd>" + v + "</dd>";
     }).join("");
-    return '<article class="panel card"' + (domId ? ' id="' + domId + '"' : "") + ' style="' + colorStyle(col) + '">' +
+    return '<article class="panel card' + (isPast(e) ? " past" : "") + '" style="' + colorStyle(e.status) + '">' +
       '<div class="card-top"><div><h3>' + esc(e.nome) + '</h3><div class="when"><strong>' + esc(rangeText(e)) + "</strong> · " +
       days + (days === 1 ? " dia" : " dias") + "</div></div>" +
-      (e.status ? '<span class="badge" style="' + colorStyle(col) + '">' + esc(e.status) + "</span>" : "") +
+      (e.status ? '<span class="badge">' + esc(e.status) + "</span>" : "") +
       "</div>" + (dl ? '<dl class="kv">' + dl + "</dl>" : "") + "</article>";
+  }
+  function cardsHtml(list) {
+    if (!list.length) return emptyHtml(state.cardsAll ? "na planilha" : "neste mês");
+    return '<div class="cards">' + list.map(cardHtml).join("") + "</div>";
+  }
+
+  /* ---------- Lista ---------- */
+  function listHtml(list) {
+    if (!list.length) return emptyHtml("na planilha");
+    var extra = state.columns.filter(function (c) { return !HIDDEN_ROLES[c.role]; });
+    var ncol = 3 + extra.length;
+    var html = '<div class="panel table-wrap"><table class="list"><thead><tr><th>Data</th><th>Evento</th><th>Status</th>' +
+      extra.map(function (c) { return "<th>" + esc(c.label) + "</th>"; }).join("") + "</tr></thead><tbody>";
+    var groups = {};
+    var order = [];
+    list.forEach(function (e) {
+      var k = monthKey(e.inicio);
+      if (!groups[k]) { groups[k] = []; order.push(k); }
+      groups[k].push(e);
+    });
+    order.forEach(function (k) {
+      var g = groups[k];
+      html += '<tr class="grp"><th colspan="' + ncol + '">' + esc(cap(monthName(g[0].inicio))) + '<span class="n">' + countText(g.length) + "</span></th></tr>";
+      g.forEach(function (e) {
+        var vals = {};
+        e.fields.forEach(function (f) { vals[f.label] = f.value; });
+        html += '<tr class="row' + (isPast(e) ? " past" : "") + '" data-ev="' + e.id + '" tabindex="0" style="' + colorStyle(e.status) + '">' +
+          '<td class="date">' + esc(rangeText(e)) + '</td><td class="name">' + esc(e.nome) + "</td><td>" +
+          (e.status ? '<span class="badge">' + esc(e.status) + "</span>" : "") + "</td>" +
+          extra.map(function (c) {
+            var val = vals[c.label] || "";
+            return "<td" + (val.length > 30 ? ' class="long"' : "") + ">" + esc(val) + "</td>";
+          }).join("") + "</tr>";
+      });
+    });
+    return html + "</tbody></table></div>";
   }
 
   /* ---------------- Diálogo ---------------- */
@@ -1083,8 +1306,7 @@
     var d = $("dlg");
     if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
   }
-  function closeDialog() { var d = $("dlg"); if (d.open) d.close ? d.close() : d.removeAttribute("open"); }
-
+  function closeDialog() { var d = $("dlg"); if (d.open) { if (d.close) d.close(); else d.removeAttribute("open"); } }
   function openEvent(id) {
     var e = state.events.find(function (x) { return x.id === id; });
     if (e) openDialog("Detalhes do evento", cardHtml(e));
@@ -1093,34 +1315,50 @@
     var d = new Date(+ts);
     var list = state.events.filter(function (e) { return matches(e) && overlaps(e, d, d); });
     var title = d.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
-    openDialog(cap(title), list.length ? list.map(function (e) { return cardHtml(e); }).join("")
-      : '<div class="empty">Nenhum evento neste dia.</div>');
+    openDialog(cap(title), list.length ? list.map(cardHtml).join("") : '<div class="empty">Nenhum evento neste dia.</div>');
   }
 
-  /* ---------------- URL (mês/visão compartilháveis) ---------------- */
+  /* ---------------- Endereço (#visao ou #visao-AAAA-MM) ---------------- */
   function writeHash() {
-    var h = "#" + (state.view === "todos" ? "todos" : monthKey(state.month));
-    if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h);
+    var h = "#" + state.view + ((state.view === "calendario" || state.view === "cards") ? "-" + monthKey(state.month) : "");
+    if (location.hash !== h) {
+      try { history.replaceState(null, "", location.pathname + location.search + h); } catch (err) { /* ignorado */ }
+    }
   }
   function readHash() {
-    var h = location.hash.slice(1);
-    var m = h.match(/^(\d{4})-(\d{2})$/);
-    if (m) { state.month = new Date(+m[1], +m[2] - 1, 1); state.view = "mes"; }
-    else if (h === "todos") state.view = "todos";
+    var m = location.hash.slice(1).match(/^(linha|calendario|cards|lista)(?:-(\d{4})-(\d{2}))?$/);
+    if (!m) return;
+    state.view = m[1];
+    if (m[2]) state.month = new Date(+m[2], +m[3] - 1, 1);
   }
 
-  /* ---------------- Eventos de UI ---------------- */
-  function goMonth(d) { state.month = startOfMonth(d); state.view = "mes"; render(); }
+  /* ---------------- Interações ---------------- */
+  function setMenu(open) {
+    $("shell").classList.toggle("menu-open", open);
+    $("menuBtn").setAttribute("aria-expanded", String(open));
+  }
+  $("menuBtn").addEventListener("click", function () { setMenu(!$("shell").classList.contains("menu-open")); });
+  $("scrim").addEventListener("click", function () { setMenu(false); });
+  document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") setMenu(false); });
 
-  $("prevMonth").addEventListener("click", function () { goMonth(addMonths(state.month, -1)); });
-  $("nextMonth").addEventListener("click", function () { goMonth(addMonths(state.month, 1)); });
-  $("todayBtn").addEventListener("click", function () { goMonth(new Date()); });
-  $("fMes").addEventListener("change", function (ev) {
-    var p = ev.target.value.split("-");
-    goMonth(new Date(+p[0], +p[1] - 1, 1));
+  $("nav").addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-view]");
+    if (!b) return;
+    state.view = b.getAttribute("data-view");
+    setMenu(false);
+    render();
   });
-  document.querySelectorAll(".seg button").forEach(function (b) {
-    b.addEventListener("click", function () { state.view = b.getAttribute("data-view"); render(); });
+  $("controls").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button");
+    if (!b) return;
+    if (b.hasAttribute("data-tl")) state.tlMonths = +b.getAttribute("data-tl");
+    if (b.hasAttribute("data-all")) state.cardsAll = b.getAttribute("data-all") === "1";
+    if (b.hasAttribute("data-nav")) {
+      var n = +b.getAttribute("data-nav");
+      state.month = n === 0 ? startOfMonth(new Date()) : addMonths(state.month, n);
+      state.cardsAll = false;
+    }
+    render();
   });
   var searchTimer;
   $("fBusca").addEventListener("input", function (ev) {
@@ -1129,39 +1367,65 @@
   });
   $("clearFilters").addEventListener("click", function () {
     state.filters = {};
+    state.statusCat = "";
     state.search = "";
     $("fBusca").value = "";
     buildFilters();
     render();
   });
   $("legend").addEventListener("click", function (ev) {
-    var b = ev.target.closest("[data-status]");
+    var b = ev.target.closest("[data-cat]");
     if (!b) return;
-    var s = b.getAttribute("data-status");
-    if (state.filters.status === s) delete state.filters.status; else state.filters.status = s;
-    buildFilters();
+    var c = b.getAttribute("data-cat");
+    state.statusCat = state.statusCat === c ? "" : c;
     render();
   });
-  $("weeks").addEventListener("click", function (ev) {
-    var bar = ev.target.closest("[data-ev]");
-    if (bar) { openEvent(bar.getAttribute("data-ev")); return; }
+  $("view").addEventListener("click", function (ev) {
+    var el = ev.target.closest("[data-ev]");
+    if (el) { openEvent(el.getAttribute("data-ev")); return; }
     var day = ev.target.closest("[data-day]");
     if (day) openDay(day.getAttribute("data-day"));
+  });
+  $("view").addEventListener("keydown", function (ev) {
+    if (ev.key !== "Enter") return;
+    var row = ev.target.closest("tr[data-ev]");
+    if (row) openEvent(row.getAttribute("data-ev"));
   });
   $("dlgClose").addEventListener("click", closeDialog);
   $("dlg").addEventListener("click", function (ev) { if (ev.target === ev.currentTarget) closeDialog(); });
   $("btnRefresh").addEventListener("click", load);
+  $("btnPrint").addEventListener("click", function () { window.print(); });
+
+  var resizeTimer;
+  window.addEventListener("resize", function () {
+    if (state.view !== "linha" || !state.lastSig) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(render, 150);
+  });
 
   /* ---------------- Inicialização ---------------- */
   readHash();
+
+  if (SNAPSHOT) {
+    // Prévia: dados copiados da planilha, sem acesso ao Google.
+    $("btnRefresh").hidden = true;
+    $("btnPrint").hidden = true;
+    $("previewFlag").hidden = false;
+    $("previewFlag").textContent = "Prévia com dados copiados da planilha em " + SNAPSHOT.takenAt +
+      ". A versão publicada lê a planilha ao vivo e tem o botão Imprimir / PDF.";
+    state.headerRow = SNAPSHOT.headerRow;
+    $("content").hidden = false;
+    setSync("ok", "Cópia de " + SNAPSHOT.takenAt);
+    ingest(SNAPSHOT.table);
+    return;
+  }
+
   if (!sheetId) {
     $("setup").hidden = false;
     $("btnRefresh").hidden = true;
     setSync("", "Planilha não configurada");
     return;
   }
-  $("btnSheet").href = "https://docs.google.com/spreadsheets/d/" + encodeURIComponent(sheetId) + "/edit";
-  $("btnSheet").hidden = false;
   load();
   setInterval(function () { if (!document.hidden) load(); }, Math.max(15, CONFIG.REFRESH_SECONDS) * 1000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) load(); });
