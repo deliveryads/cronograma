@@ -249,26 +249,28 @@
     background: var(--hero-bg);
     color: var(--hero-fg);
     border-radius: var(--radius-md);
-    padding: 22px 24px;
+    padding: 32px 36px;
+    min-height: 260px;
+    align-content: center;
     display: grid;
-    gap: 16px;
+    gap: 20px;
     box-shadow: var(--shadow);
-    border-left: 6px solid var(--c);
+    border-left: 8px solid var(--c);
     cursor: pointer;
   }
   .hero-eyebrow {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--hero-label);
   }
-  .hero-name { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 14px 32px; }
+  .hero-name { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 16px 40px; }
   .hero-meta div, .hero-obs { display: grid; gap: 3px; min-width: 0; }
-  .hero .k { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hero-label); }
-  .hero .v { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
-  .hero-obs p { margin: 0; font-size: 15px; line-height: 1.45; white-space: pre-line; }
+  .hero .k { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hero-label); }
+  .hero .v { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .hero-obs p { margin: 0; font-size: 17px; line-height: 1.45; white-space: pre-line; }
   .hero-st { display: inline-flex; align-items: center; gap: 8px; }
   .hero-st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
   .next-empty { padding: 18px 20px; color: var(--text-muted); }
@@ -578,7 +580,9 @@
     .page-head p { display: none; }
     .sidebar { padding-left: 16px; padding-right: 16px; box-shadow: var(--shadow); }
     .main { padding: 6px 16px 48px; }
-    .hero-name { font-size: 26px; }
+    .hero { padding: 24px 22px; min-height: 0; }
+    .hero-name { font-size: 30px; }
+    .hero .v { font-size: 17px; }
   }
   @media (max-width: 720px) {
     .week { min-height: 76px; }
@@ -1184,7 +1188,8 @@
     sel.value = state.monthSel;
   }
 
-  /* Próximo evento: menor data de início a partir de hoje (cancelados não entram). */
+  /* Destaque: eventos em andamento hoje; se não houver, o(s) de menor data de
+   * início a partir de hoje. Cancelados não entram; o filtro de mês não se aplica. */
   function weekdayText(e) {
     var w = function (d) { return d.toLocaleDateString("pt-BR", { weekday: "long" }); };
     return cap(sameDay(e.inicio, e.fim) ? w(e.inicio) : w(e.inicio) + " a " + w(e.fim));
@@ -1197,16 +1202,19 @@
     var box = $("nextBox");
     if (state.view !== "linha") { box.hidden = true; return; }
     var t = today();
-    var upcoming = state.events.filter(function (e) {
-      return matches(e) && e.inicio >= t && statusCat(e.status) !== "cancelado";
+    var pool = state.events.filter(function (e) {
+      return matches(e) && e.fim >= t && statusCat(e.status) !== "cancelado";
     });
     box.hidden = false;
-    if (!upcoming.length) {
+    if (!pool.length) {
       box.innerHTML = '<div class="panel next-empty">Nenhum evento futuro' + (anyFilter() ? " com os filtros selecionados" : "") + ".</div>";
       return;
     }
-    var first = upcoming[0].inicio;
-    var list = upcoming.filter(function (e) { return sameDay(e.inicio, first); });
+    var list = pool.filter(function (e) { return e.inicio <= t; });
+    if (!list.length) {
+      var first = pool[0].inicio;
+      list = pool.filter(function (e) { return sameDay(e.inicio, first); });
+    }
     box.innerHTML = '<div class="next">' + list.map(function (e) {
       var meta = '<div><span class="k">' + (sameDay(e.inicio, e.fim) ? "Data" : "Datas") + '</span><span class="v">' +
         esc(sameDay(e.inicio, e.fim) ? fmtDate(e.inicio) : fmtDate(e.inicio) + " a " + fmtDate(e.fim)) + "</span></div>" +
@@ -1219,7 +1227,9 @@
         ? '<div class="hero-obs"><span class="k">' + esc(state.columns[state.roleIndex.obs].label) + "</span><p>" + esc(e.values.obs || "—") + "</p></div>"
         : "";
       return '<article class="hero" role="button" tabindex="0" data-ev="' + e.id + '" style="' + colorStyle(e.status) + '">' +
-        '<span class="hero-eyebrow">Próximo evento · ' + untilText(e.inicio) + "</span>" +
+        '<span class="hero-eyebrow">' + (sameDay(e.inicio, t) && sameDay(e.fim, t) ? "Acontece hoje"
+          : e.inicio <= t ? "Em andamento · " + (sameDay(e.fim, t) ? "termina hoje" : "termina em " + dayDiff(t, e.fim) + (dayDiff(t, e.fim) === 1 ? " dia" : " dias"))
+          : "Próximo evento · " + untilText(e.inicio)) + "</span>" +
         '<h2 class="hero-name">' + esc(e.nome) + '</h2><div class="hero-meta">' + meta + "</div>" + obs + "</article>";
     }).join("") + "</div>";
   }
