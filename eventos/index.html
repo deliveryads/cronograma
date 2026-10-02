@@ -334,9 +334,11 @@
     color: var(--text);
   }
   .tl-ev .lbl {
-    display: inline-block;
+    display: inline-grid;
+    gap: 1px;
     font-size: 13px;
     font-weight: 650;
+    line-height: 1.25;
     white-space: nowrap;
     padding: 3px 8px;
     border-radius: var(--radius-sm);
@@ -344,6 +346,7 @@
     border: 1px solid transparent;
   }
   .tl-ev:hover .lbl { border-color: var(--c); }
+  .tl-ev .dt { font-size: 11.5px; font-weight: 500; color: var(--text-muted); font-variant-numeric: tabular-nums; }
   .tl-ev .dur { display: block; height: 4px; border-radius: 2px; background: var(--c); margin-top: 3px; }
 
   /* ---------- Calendário ---------- */
@@ -1138,6 +1141,9 @@
 
   /* ---------- Linha do tempo ---------- */
   var measureCtx = null;
+  function shortRange(e) {
+    return sameDay(e.inicio, e.fim) ? fmtShort(e.inicio) : fmtShort(e.inicio) + " – " + fmtShort(e.fim);
+  }
   function labelWidth(t) {
     if (!measureCtx) {
       measureCtx = document.createElement("canvas").getContext("2d");
@@ -1155,14 +1161,14 @@
     function x(d) { return Math.round(Math.min(Math.max(dayDiff(from, d), 0), days) * pxDay); }
 
     // Rótulos em faixas, alternando acima/abaixo da linha, sem sobreposição.
-    var ROW = 46;
+    var ROW = 62;
     var lanesEnd = [];
     var items = list.map(function (e) {
       var x0 = x(e.inicio < from ? from : e.inicio);
       var x1 = x(addDays(e.fim > to ? to : e.fim, 1));
       var lane = 0;
       while (lanesEnd[lane] != null && lanesEnd[lane] + 12 > x0) lane++;
-      lanesEnd[lane] = x0 + Math.max(labelWidth(e.nome), x1 - x0);
+      lanesEnd[lane] = x0 + Math.max(labelWidth(e.nome), labelWidth(shortRange(e)) - 8, x1 - x0);
       return { e: e, x0: x0, x1: x1, lane: lane, clipped: e.inicio < from };
     });
     width = Math.max(width, Math.max.apply(null, lanesEnd.concat([0])) + 8);
@@ -1193,13 +1199,13 @@
       var y = up ? axisY - 10 - (level + 1) * ROW + 4 : axisY + 18 + level * ROW;
       var dotX = it.x0 + Math.round(pxDay / 2);
       var style = colorStyle(it.e.status);
-      var stemTop = up ? y + 34 : axisY;
+      var stemTop = up ? y + 50 : axisY;
       var stemH = up ? axisY - stemTop : y - axisY;
       if (stemH > 0) html += '<div class="tl-stem" style="' + style + ";left:" + dotX + "px;top:" + stemTop + "px;height:" + stemH + 'px"></div>';
       if (!it.clipped) html += '<div class="tl-dot" style="' + style + ";left:" + dotX + "px;top:" + (axisY - 5) + 'px"></div>';
       var title = it.e.nome + " — " + rangeText(it.e) + (it.e.status ? " · " + it.e.status : "");
       html += '<button type="button" class="tl-ev" data-ev="' + it.e.id + '" title="' + esc(title) + '" style="' + style +
-        ";left:" + it.x0 + "px;top:" + y + 'px"><span class="lbl">' + esc(it.e.nome) + '</span><span class="dur" style="width:' +
+        ";left:" + it.x0 + "px;top:" + y + 'px"><span class="lbl"><span>' + esc(it.e.nome) + '</span><span class="dt">' + esc(shortRange(it.e)) + '</span></span><span class="dur" style="width:' +
         Math.max(it.x1 - it.x0, 8) + 'px"></span></button>';
     });
 
