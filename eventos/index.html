@@ -689,7 +689,6 @@
     <section class="panel notice err" id="errorBox" hidden></section>
 
     <div class="content" id="content" hidden>
-      <section id="nextBox" aria-label="Próximo evento" hidden></section>
       <div class="view-head">
         <div>
           <h2 id="viewTitle"></h2>
@@ -699,6 +698,7 @@
       </div>
       <div id="warnings" class="warnline" hidden></div>
       <div id="view"></div>
+      <section id="nextBox" aria-label="Próximo evento" hidden></section>
     </div>
   </main>
 </div>
@@ -1188,8 +1188,8 @@
     sel.value = state.monthSel;
   }
 
-  /* Destaque: eventos em andamento hoje; se não houver, o(s) de menor data de
-   * início a partir de hoje. Cancelados não entram; o filtro de mês não se aplica. */
+  /* Destaque: todos os eventos em andamento hoje + todos os que começam na
+   * próxima data com evento. Cancelados não entram; o filtro de mês não se aplica. */
   function weekdayText(e) {
     var w = function (d) { return d.toLocaleDateString("pt-BR", { weekday: "long" }); };
     return cap(sameDay(e.inicio, e.fim) ? w(e.inicio) : w(e.inicio) + " a " + w(e.fim));
@@ -1210,11 +1210,10 @@
       box.innerHTML = '<div class="panel next-empty">Nenhum evento futuro' + (anyFilter() ? " com os filtros selecionados" : "") + ".</div>";
       return;
     }
-    var list = pool.filter(function (e) { return e.inicio <= t; });
-    if (!list.length) {
-      var first = pool[0].inicio;
-      list = pool.filter(function (e) { return sameDay(e.inicio, first); });
-    }
+    var ongoing = pool.filter(function (e) { return e.inicio <= t; });
+    var future = pool.filter(function (e) { return e.inicio > t; });
+    var nextDate = future.length ? future[0].inicio : null;
+    var list = ongoing.concat(future.filter(function (e) { return sameDay(e.inicio, nextDate); }));
     box.innerHTML = '<div class="next">' + list.map(function (e) {
       var meta = '<div><span class="k">' + (sameDay(e.inicio, e.fim) ? "Data" : "Datas") + '</span><span class="v">' +
         esc(sameDay(e.inicio, e.fim) ? fmtDate(e.inicio) : fmtDate(e.inicio) + " a " + fmtDate(e.fim)) + "</span></div>" +
@@ -1313,11 +1312,17 @@
     var html = '<div class="panel tl-wrap"><div class="tl-scroll"><div class="tl" style="width:' + width + "px;height:" + height + 'px">';
     html += '<div class="tl-axis" style="top:' + axisY + 'px"></div>';
 
-    for (var m = startOfMonth(from); m <= to; m = addMonths(m, 1)) {
-      var first = m <= from;
-      html += '<div class="tl-month" style="left:' + x(first ? from : m) + "px;top:0;height:" + height + 'px"><span style="top:4px">' +
-        esc(MONTHS[m.getMonth()] + (first || m.getMonth() === 0 ? " " + m.getFullYear() : "")) + "</span></div>";
-    }
+    // Marcos de mês; o rótulo do mês parcial inicial some se não couber antes do próximo.
+    var marks = [];
+    for (var m = startOfMonth(from); m <= to; m = addMonths(m, 1)) marks.push({ m: m, x: x(m <= from ? from : m) });
+    var showYear = true;
+    marks.forEach(function (mk, i) {
+      var label = MONTHS[mk.m.getMonth()];
+      var fits = !(i === 0 && marks[1] && marks[1].x - mk.x < labelWidth(label + " 0000") + 8);
+      if (fits && (showYear || mk.m.getMonth() === 0)) { label += " " + mk.m.getFullYear(); showYear = false; }
+      html += '<div class="tl-month" style="left:' + mk.x + "px;top:0;height:" + height + 'px">' +
+        (fits ? '<span style="top:4px">' + esc(label) + "</span>" : "") + "</div>";
+    });
 
     var t = today();
     if (t >= from && t <= to) {
