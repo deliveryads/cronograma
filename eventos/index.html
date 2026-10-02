@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Calendário de Eventos</title>
+<title>Eventos de curta duração</title>
 <style>
   /* Layout: menu lateral fixo (visões, filtros, legenda, dados) + área de conteúdo.
      Paleta: #7AE582 #25A1BE #9FFFCB #00A5CF #004E64 #2F4858. */
@@ -22,12 +22,16 @@
     --warn: #9a5b00;
     --backdrop: rgba(18, 30, 38, 0.5);
     /* Menu lateral */
-    --side-bg: #2f4858;
-    --side-fg: #ffffff;
-    --side-muted: #b9ccd4;
-    --side-hover: #3b5a6c;
-    --side-active-bg: #004e64;
-    --side-active-fg: #9fffcb;
+    --side-bg: var(--bg);
+    --side-fg: var(--text);
+    --side-muted: var(--text-muted);
+    --side-hover: var(--surface-alt);
+    --side-active-bg: var(--accent-soft);
+    --side-active-fg: var(--accent);
+    /* Próximo evento */
+    --hero-bg: #004e64;
+    --hero-fg: #ffffff;
+    --hero-label: #9fffcb;
     /* Linha do tempo: linha e textos com contraste máximo */
     --tl-line: #0b0d12;
     --tl-ink: #0b0d12;
@@ -59,12 +63,6 @@
       --accent-contrast: #ffffff;
       --warn: #f2c75c;
       --backdrop: rgba(0, 0, 0, 0.6);
-      --side-bg: #2f4858;
-      --side-fg: #ffffff;
-      --side-muted: #b9ccd4;
-      --side-hover: #3b5a6c;
-      --side-active-bg: #004e64;
-      --side-active-fg: #9fffcb;
       --tl-line: #ffffff;
       --tl-ink: #ffffff;
       --st-green: #7ae582;   --st-green-bg: #173826;
@@ -89,12 +87,6 @@
     --accent-contrast: #ffffff;
     --warn: #f2c75c;
     --backdrop: rgba(0, 0, 0, 0.6);
-    --side-bg: #2f4858;
-    --side-fg: #ffffff;
-    --side-muted: #b9ccd4;
-    --side-hover: #3b5a6c;
-    --side-active-bg: #004e64;
-    --side-active-fg: #9fffcb;
     --tl-line: #ffffff;
     --tl-ink: #ffffff;
     --st-green: #7ae582;   --st-green-bg: #173826;
@@ -127,12 +119,22 @@
   [hidden] { display: none !important; }
 
   /* ---------- Estrutura ---------- */
+  .page-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 24px 6px;
+  }
+  .page-head img { width: 44px; height: 44px; flex: none; }
+  .page-head h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+  .page-head p { margin: 2px 0 0; font-size: 13px; color: var(--text-muted); }
+  .page-head #menuBtn { display: none; }
   .shell { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); min-height: 100vh; }
 
   .sidebar {
     background: var(--side-bg);
     color: var(--side-fg);
-    padding: 20px 16px 24px;
+    padding: 18px 8px 24px 24px;
     display: flex;
     flex-direction: column;
     gap: 22px;
@@ -141,11 +143,7 @@
     height: 100vh;
     overflow-y: auto;
   }
-  .brand { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 18px; border-bottom: 3px solid var(--brand); }
-  .brand img { width: 40px; height: 40px; flex: none; }
-  .brand h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
-  .brand p { margin: 4px 0 0; font-size: 12px; color: var(--side-muted); line-height: 1.4; }
-
+  
   .side-section { display: grid; gap: 8px; }
   .side-title {
     font-size: 11px;
@@ -245,7 +243,35 @@
   .content { display: grid; gap: 16px; min-width: 0; }
   #view { min-width: 0; }
 
-  .topbar { display: none; }
+  /* ---------- Próximo evento ---------- */
+  .next { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .hero {
+    background: var(--hero-bg);
+    color: var(--hero-fg);
+    border-radius: var(--radius-md);
+    padding: 22px 24px;
+    display: grid;
+    gap: 16px;
+    box-shadow: var(--shadow);
+    border-left: 6px solid var(--c);
+    cursor: pointer;
+  }
+  .hero-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--hero-label);
+  }
+  .hero-name { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 14px 32px; }
+  .hero-meta div, .hero-obs { display: grid; gap: 3px; min-width: 0; }
+  .hero .k { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hero-label); }
+  .hero .v { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .hero-obs p { margin: 0; font-size: 15px; line-height: 1.45; white-space: pre-line; }
+  .hero-st { display: inline-flex; align-items: center; gap: 8px; }
+  .hero-st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+  .next-empty { padding: 18px 20px; color: var(--text-muted); }
   .view-head {
     display: flex;
     flex-wrap: wrap;
@@ -538,18 +564,21 @@
     }
     .shell.menu-open .sidebar { transform: none; visibility: visible; box-shadow: var(--shadow); }
     .shell.menu-open .scrim { display: block; position: fixed; inset: 0; background: var(--backdrop); z-index: 15; }
-    .topbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .page-head {
       position: sticky;
       top: env(safe-area-inset-top, 0px);
       z-index: 10;
       background: var(--bg);
-      padding-block: 10px;
+      padding: 12px 16px;
+      gap: 10px;
     }
-    .topbar strong { font-size: 15px; }
+    .page-head #menuBtn { display: inline-block; }
+    .page-head img { width: 32px; height: 32px; }
+    .page-head h1 { font-size: 19px; }
+    .page-head p { display: none; }
+    .sidebar { padding-left: 16px; padding-right: 16px; box-shadow: var(--shadow); }
     .main { padding: 6px 16px 48px; }
+    .hero-name { font-size: 26px; }
   }
   @media (max-width: 720px) {
     .week { min-height: 76px; }
@@ -567,7 +596,7 @@
 
   /* ---------- Impressão ---------- */
   @media print {
-    .sidebar, .topbar, .scrim, .controls, .preview-flag, dialog { display: none !important; }
+    .sidebar, #menuBtn, .scrim, .controls, .preview-flag, dialog { display: none !important; }
     .shell { display: block; }
     .main { padding: 0; }
     .panel { box-shadow: none; }
@@ -576,16 +605,16 @@
 </style>
 </head>
 <body>
+<header class="page-head">
+  <button class="btn icon" id="menuBtn" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <img src="logo.png" alt="">
+  <div>
+    <h1>Eventos de curta duração</h1>
+    <p>Eventos com oportunidades de venda de campanhas no digital</p>
+  </div>
+</header>
 <div class="shell" id="shell">
   <aside class="sidebar" id="sidebar" aria-label="Menu">
-    <div class="brand">
-      <img src="logo.png" alt="">
-      <div>
-        <h1>Calendário de Eventos</h1>
-        <p>Eventos com oportunidades de venda de campanhas no digital</p>
-      </div>
-    </div>
-
     <section class="side-section" aria-labelledby="navTitle">
       <h2 class="side-title" id="navTitle">Visualização</h2>
       <nav class="nav" id="nav">
@@ -610,6 +639,10 @@
 
     <section class="side-section" aria-labelledby="filterTitle">
       <h2 class="side-title" id="filterTitle">Filtros</h2>
+      <div class="field">
+        <label for="fMes">Mês</label>
+        <select id="fMes"></select>
+      </div>
       <div class="field">
         <label for="fBusca">Busca</label>
         <input id="fBusca" type="search" placeholder="Nome, observação…">
@@ -637,12 +670,6 @@
   <div class="scrim" id="scrim"></div>
 
   <main class="main">
-    <div class="topbar">
-      <button class="btn icon" id="menuBtn" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button>
-      <img src="logo.png" alt="" width="26" height="26">
-      <strong>Calendário de Eventos</strong>
-    </div>
-
     <div class="preview-flag" id="previewFlag" hidden></div>
 
     <section class="panel notice" id="setup" hidden>
@@ -658,6 +685,7 @@
     <section class="panel notice err" id="errorBox" hidden></section>
 
     <div class="content" id="content" hidden>
+      <section id="nextBox" aria-label="Próximo evento" hidden></section>
       <div class="view-head">
         <div>
           <h2 id="viewTitle"></h2>
@@ -711,6 +739,7 @@
     local:       ["local", "cidade", "praca", "cidade/uf"],
     responsavel: ["responsavel", "responsavel comercial", "executivo", "owner"],
     transmissao: ["transmissao lf", "transmissao"],
+    obs:         ["observacao", "observacoes", "obs"],
     /* "Mês" é derivado das datas; não é exibido. */
     mes:         ["mes"]
   };
@@ -753,6 +782,7 @@
     view: "linha",
     month: startOfMonth(new Date()),
     cardsAll: false,
+    monthSel: "",
     tlMonths: 1,
     filters: {},
     statusCat: "",
@@ -1062,7 +1092,13 @@
     var to = addDays(new Date(from.getFullYear(), from.getMonth() + state.tlMonths, from.getDate()), -1);
     return [from, to];
   }
+  function monthRange(key) {
+    var p = key.split("-");
+    var m = new Date(+p[0], +p[1] - 1, 1);
+    return [m, addDays(addMonths(m, 1), -1)];
+  }
   function viewRange() {
+    if (state.monthSel) return monthRange(state.monthSel);
     if (state.view === "linha") return timelineRange();
     if (state.view === "calendario" || (state.view === "cards" && !state.cardsAll)) {
       return [state.month, addDays(addMonths(state.month, 1), -1)];
@@ -1083,8 +1119,10 @@
       if (b.getAttribute("data-view") === state.view) b.setAttribute("aria-current", "page");
       else b.removeAttribute("aria-current");
     });
-    $("clearFilters").hidden = !anyFilter();
+    $("clearFilters").hidden = !(anyFilter() || state.monthSel);
 
+    renderMonthFilter();
+    renderNext();
     renderLegend(inRange(state.events.filter(function (e) { return matches(e, true); }), range));
     renderHead(scoped, range);
     renderWarnings();
@@ -1102,7 +1140,9 @@
     var title = VIEWS[state.view];
     var sub = "";
     var ctl = "";
-    if (state.view === "linha") {
+    if (state.view === "linha" && state.monthSel) {
+      sub = cap(monthName(range[0])) + " (filtro de mês) · " + countText(scoped.length);
+    } else if (state.view === "linha") {
       sub = "De " + fmtDate(range[0]) + " a " + fmtDate(range[1]) + " · " + countText(scoped.length);
       ctl = '<span class="lbl">Período</span><div class="seg" role="group" aria-label="Período">' +
         [1, 2, 3].map(function (n) {
@@ -1121,11 +1161,67 @@
           '<button type="button" data-all="1" aria-pressed="' + all + '">Todos</button></div>';
       }
     } else {
-      sub = countText(scoped.length) + " · agrupados por mês de início";
+      sub = countText(scoped.length) + " · agrupados por mês de início" + (state.monthSel ? " · " + cap(monthName(range[0])) : "");
     }
     $("viewTitle").textContent = title;
     $("viewSub").textContent = sub;
     $("controls").innerHTML = ctl;
+  }
+
+  function renderMonthFilter() {
+    var keys = {};
+    state.events.forEach(function (e) {
+      for (var m = startOfMonth(e.inicio); m <= e.fim; m = addMonths(m, 1)) keys[monthKey(m)] = m;
+    });
+    var t = startOfMonth(new Date());
+    keys[monthKey(t)] = t;
+    var sel = $("fMes");
+    sel.innerHTML = '<option value="">Todos</option>' + Object.keys(keys).sort().map(function (k) {
+      var r = monthRange(k);
+      var n = state.events.filter(function (e) { return matches(e) && overlaps(e, r[0], r[1]); }).length;
+      return '<option value="' + k + '">' + esc(cap(monthName(keys[k]))) + " (" + n + ")</option>";
+    }).join("");
+    sel.value = state.monthSel;
+  }
+
+  /* Próximo evento: menor data de início a partir de hoje (cancelados não entram). */
+  function weekdayText(e) {
+    var w = function (d) { return d.toLocaleDateString("pt-BR", { weekday: "long" }); };
+    return cap(sameDay(e.inicio, e.fim) ? w(e.inicio) : w(e.inicio) + " a " + w(e.fim));
+  }
+  function untilText(d) {
+    var n = dayDiff(today(), d);
+    return n === 0 ? "é hoje" : n === 1 ? "amanhã" : "faltam " + n + " dias";
+  }
+  function renderNext() {
+    var box = $("nextBox");
+    if (state.view !== "linha") { box.hidden = true; return; }
+    var t = today();
+    var upcoming = state.events.filter(function (e) {
+      return matches(e) && e.inicio >= t && statusCat(e.status) !== "cancelado";
+    });
+    box.hidden = false;
+    if (!upcoming.length) {
+      box.innerHTML = '<div class="panel next-empty">Nenhum evento futuro' + (anyFilter() ? " com os filtros selecionados" : "") + ".</div>";
+      return;
+    }
+    var first = upcoming[0].inicio;
+    var list = upcoming.filter(function (e) { return sameDay(e.inicio, first); });
+    box.innerHTML = '<div class="next">' + list.map(function (e) {
+      var meta = '<div><span class="k">' + (sameDay(e.inicio, e.fim) ? "Data" : "Datas") + '</span><span class="v">' +
+        esc(sameDay(e.inicio, e.fim) ? fmtDate(e.inicio) : fmtDate(e.inicio) + " a " + fmtDate(e.fim)) + "</span></div>" +
+        '<div><span class="k">Dia da semana</span><span class="v">' + esc(weekdayText(e)) + "</span></div>";
+      if (state.roleIndex.transmissao != null) {
+        meta += '<div><span class="k">' + esc(state.columns[state.roleIndex.transmissao].label) + '</span><span class="v">' + esc(e.values.transmissao || "—") + "</span></div>";
+      }
+      if (e.status) meta += '<div><span class="k">Status</span><span class="v hero-st">' + esc(e.status) + "</span></div>";
+      var obs = state.roleIndex.obs != null
+        ? '<div class="hero-obs"><span class="k">' + esc(state.columns[state.roleIndex.obs].label) + "</span><p>" + esc(e.values.obs || "—") + "</p></div>"
+        : "";
+      return '<article class="hero" role="button" tabindex="0" data-ev="' + e.id + '" style="' + colorStyle(e.status) + '">' +
+        '<span class="hero-eyebrow">Próximo evento · ' + untilText(e.inicio) + "</span>" +
+        '<h2 class="hero-name">' + esc(e.nome) + '</h2><div class="hero-meta">' + meta + "</div>" + obs + "</article>";
+    }).join("") + "</div>";
   }
 
   function renderWarnings() {
@@ -1394,13 +1490,33 @@
     var b = ev.target.closest("button");
     if (!b) return;
     if (b.hasAttribute("data-tl")) state.tlMonths = +b.getAttribute("data-tl");
-    if (b.hasAttribute("data-all")) state.cardsAll = b.getAttribute("data-all") === "1";
+    if (b.hasAttribute("data-all")) {
+      state.cardsAll = b.getAttribute("data-all") === "1";
+      if (state.cardsAll) state.monthSel = "";
+    }
     if (b.hasAttribute("data-nav")) {
       var n = +b.getAttribute("data-nav");
       state.month = n === 0 ? startOfMonth(new Date()) : addMonths(state.month, n);
       state.cardsAll = false;
+      if (state.monthSel) state.monthSel = monthKey(state.month);
     }
     render();
+  });
+  $("fMes").addEventListener("change", function (ev) {
+    state.monthSel = ev.target.value;
+    if (state.monthSel) {
+      state.month = monthRange(state.monthSel)[0];
+      state.cardsAll = false;
+    }
+    render();
+  });
+  $("nextBox").addEventListener("click", function (ev) {
+    var el = ev.target.closest("[data-ev]");
+    if (el) openEvent(el.getAttribute("data-ev"));
+  });
+  $("nextBox").addEventListener("keydown", function (ev) {
+    var el = ev.target.closest("[data-ev]");
+    if (el && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); openEvent(el.getAttribute("data-ev")); }
   });
   var searchTimer;
   $("fBusca").addEventListener("input", function (ev) {
@@ -1410,6 +1526,7 @@
   $("clearFilters").addEventListener("click", function () {
     state.filters = {};
     state.statusCat = "";
+    state.monthSel = "";
     state.search = "";
     $("fBusca").value = "";
     buildFilters();
