@@ -2,4 +2,4 @@
 Cronograma time de roteiros
 
 - `index.html` — Cronograma de Responsabilidades (roteiros)
-- `eventos/` — Calendário de Eventos (DAI Eventual), lido do Google Sheets. Ver `eventos/README.md`.
+- `eventos/` — Eventos de curta duração (DAI Eventual), lido do Google Sheets. Ver `eventos/README.md`.
