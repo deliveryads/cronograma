@@ -21,6 +21,9 @@
     --accent-contrast: #ffffff;
     --warn: #b45309;
     --backdrop: rgba(10, 12, 18, 0.45);
+    /* Linha do tempo: linha e textos com contraste máximo */
+    --tl-line: #0b0d12;
+    --tl-ink: #0b0d12;
 
     /* Legenda de status */
     --st-green: #0f7a5f;   --st-green-bg: #e2f5ef;
@@ -50,6 +53,8 @@
       --accent-contrast: #06141b;
       --warn: #f0b458;
       --backdrop: rgba(0, 0, 0, 0.6);
+      --tl-line: #ffffff;
+      --tl-ink: #ffffff;
       --st-green: #5fd3ac;   --st-green-bg: #123028;
       --st-amber: #f2c75c;   --st-amber-bg: #3a3015;
       --st-red: #f2857e;     --st-red-bg: #3a1c1c;
@@ -72,6 +77,8 @@
     --accent-contrast: #06141b;
     --warn: #f0b458;
     --backdrop: rgba(0, 0, 0, 0.6);
+    --tl-line: #ffffff;
+    --tl-ink: #ffffff;
     --st-green: #5fd3ac;   --st-green-bg: #123028;
     --st-amber: #f2c75c;   --st-amber-bg: #3a3015;
     --st-red: #f2857e;     --st-red-bg: #3a1c1c;
@@ -288,8 +295,8 @@
   .tl-scroll { overflow-x: auto; overflow-y: hidden; padding: 0 20px; }
   .tl { position: relative; }
   .tl-axis, .tl-month, .tl-today, .tl-edge, .tl-stem, .tl-dot { pointer-events: none; }
-  .tl-axis { position: absolute; left: 0; right: 0; height: 2px; background: var(--border); }
-  .tl-month { position: absolute; width: 0; border-left: 1px solid var(--border); }
+  .tl-axis { position: absolute; left: 0; right: 0; height: 3px; margin-top: -0.5px; background: var(--tl-line); border-radius: 2px; }
+  .tl-month { position: absolute; width: 0; border-left: 1px dashed var(--text-faint); }
   .tl-month span {
     position: absolute;
     left: 6px;
@@ -297,7 +304,7 @@
     font-weight: 750;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-muted);
+    color: var(--tl-ink);
     white-space: nowrap;
   }
   .tl-today { position: absolute; width: 0; border-left: 2px solid var(--accent); }
@@ -312,8 +319,8 @@
     padding: 2px 8px;
     white-space: nowrap;
   }
-  .tl-edge { position: absolute; font-size: 11px; color: var(--text-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .tl-stem { position: absolute; width: 0; border-left: 1px dashed var(--c); }
+  .tl-edge { position: absolute; font-size: 11px; font-weight: 600; color: var(--tl-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tl-stem { position: absolute; width: 0; border-left: 1.5px solid var(--c); }
   .tl-dot {
     position: absolute;
     width: 12px;
@@ -331,22 +338,23 @@
     padding: 0;
     cursor: pointer;
     text-align: left;
-    color: var(--text);
+    color: var(--tl-ink);
   }
   .tl-ev .lbl {
     display: inline-grid;
     gap: 1px;
     font-size: 13px;
-    font-weight: 650;
+    font-weight: 700;
     line-height: 1.25;
     white-space: nowrap;
     padding: 3px 8px;
     border-radius: var(--radius-sm);
     background: var(--cbg);
     border: 1px solid transparent;
+    border-left: 3px solid var(--c);
   }
   .tl-ev:hover .lbl { border-color: var(--c); }
-  .tl-ev .dt { font-size: 11.5px; font-weight: 500; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .tl-ev .dt { font-size: 12px; font-weight: 600; color: var(--tl-ink); font-variant-numeric: tabular-nums; }
   .tl-ev .dur { display: block; height: 4px; border-radius: 2px; background: var(--c); margin-top: 3px; }
 
   /* ---------- Calendário ---------- */
