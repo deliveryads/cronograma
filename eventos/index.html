@@ -6,7 +6,7 @@
 <title>Calendário de Eventos</title>
 <style>
   /* Layout: menu lateral fixo (visões, filtros, legenda, dados) + área de conteúdo.
-     Cores de marca: troque --accent / --accent-soft / --accent-contrast. */
+     Cores de marca: --brand (azul do logo, #019DDA) e --accent (variação legível para texto). */
   :root {
     --bg: #f4f5f8;
     --surface: #ffffff;
@@ -15,8 +15,9 @@
     --text: #1a1d24;
     --text-muted: #5b6270;
     --text-faint: #8a90a0;
-    --accent: #3454d1;
-    --accent-soft: #e8ecfd;
+    --brand: #019dda;
+    --accent: #0077a8;
+    --accent-soft: #e1f4fb;
     --accent-contrast: #ffffff;
     --warn: #b45309;
     --backdrop: rgba(10, 12, 18, 0.45);
@@ -43,9 +44,10 @@
       --text: #e8eaf0;
       --text-muted: #9aa0b0;
       --text-faint: #6b7182;
-      --accent: #8199ff;
-      --accent-soft: #262c47;
-      --accent-contrast: #0d0e13;
+      --brand: #019dda;
+      --accent: #4cc3f0;
+      --accent-soft: #0f2e3b;
+      --accent-contrast: #06141b;
       --warn: #f0b458;
       --backdrop: rgba(0, 0, 0, 0.6);
       --st-green: #5fd3ac;   --st-green-bg: #123028;
@@ -64,9 +66,10 @@
     --text: #e8eaf0;
     --text-muted: #9aa0b0;
     --text-faint: #6b7182;
-    --accent: #8199ff;
-    --accent-soft: #262c47;
-    --accent-contrast: #0d0e13;
+    --brand: #019dda;
+    --accent: #4cc3f0;
+    --accent-soft: #0f2e3b;
+    --accent-contrast: #06141b;
     --warn: #f0b458;
     --backdrop: rgba(0, 0, 0, 0.6);
     --st-green: #5fd3ac;   --st-green-bg: #123028;
@@ -113,6 +116,8 @@
     height: 100vh;
     overflow-y: auto;
   }
+  .brand { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 18px; border-bottom: 3px solid var(--brand); }
+  .brand img { width: 40px; height: 40px; flex: none; }
   .brand h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
   .brand p { margin: 4px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 
@@ -544,8 +549,11 @@
 <div class="shell" id="shell">
   <aside class="sidebar" id="sidebar" aria-label="Menu">
     <div class="brand">
-      <h1>Calendário de Eventos</h1>
-      <p>Eventos com oportunidades de venda de campanhas no digital</p>
+      <img src="logo.png" alt="">
+      <div>
+        <h1>Calendário de Eventos</h1>
+        <p>Eventos com oportunidades de venda de campanhas no digital</p>
+      </div>
     </div>
 
     <section class="side-section" aria-labelledby="navTitle">
@@ -601,6 +609,7 @@
   <main class="main">
     <div class="topbar">
       <button class="btn icon" id="menuBtn" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+      <img src="logo.png" alt="" width="26" height="26">
       <strong>Calendário de Eventos</strong>
     </div>
 
