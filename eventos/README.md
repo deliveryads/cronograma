@@ -7,6 +7,12 @@ ao voltar para a aba ou pelo botão **Atualizar**). Não há dados embutidos.
 - Planilha: https://docs.google.com/spreadsheets/d/1GJ_ShKOHqaLLfpgWJHIrXu44fPMYBaSSSrRiVEbFkYU/edit
 - Página publicada: https://deliveryads.github.io/cronograma/eventos/
 
+## Visibilidade
+
+A página tem `<meta name="robots" content="noindex, nofollow, noarchive">`: buscadores não a
+indexam. Isso **não** é controle de acesso: quem tiver o link consegue abrir, e o repositório
+e a planilha continuam públicos.
+
 ## Pré-requisito obrigatório
 
 A planilha precisa estar em **Compartilhar → Acesso geral → Qualquer pessoa com o link → Leitor**.
