@@ -50,49 +50,57 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #142129;
-      --surface: #1b2c36;
-      --surface-alt: #223743;
-      --border: #2f4858;
-      --text: #eef6f8;
-      --text-muted: #a8bec7;
-      --text-faint: #6f8a96;
+      /* Modo escuro "azulterra": azul profundo + tons de terra */
+      --bg: #0e1b29;
+      --surface: #152739;
+      --surface-alt: #1c3147;
+      --border: #2b4561;
+      --text: #f3ece2;
+      --text-muted: #cbb9a3;
+      --text-faint: #8f8070;
       --brand: #00a5cf;
-      --accent: #25a1be;
-      --accent-soft: #0e3a47;
-      --accent-contrast: #ffffff;
-      --warn: #f2c75c;
+      --accent: #e3956a;
+      --accent-soft: #3a2b24;
+      --accent-contrast: #1b0f08;
+      --warn: #e9b872;
       --backdrop: rgba(0, 0, 0, 0.6);
+      --hero-bg: #1e3d58;
+      --hero-fg: #ffffff;
+      --hero-label: #edbb92;
       --tl-line: #ffffff;
       --tl-ink: #ffffff;
-      --st-green: #7ae582;   --st-green-bg: #173826;
-      --st-amber: #f2c75c;   --st-amber-bg: #3a3015;
-      --st-red: #f2857e;     --st-red-bg: #3a1c1c;
-      --st-gray: #a8bec7;    --st-gray-bg: #2a3d48;
+      --st-green: #7ae582;   --st-green-bg: #163528;
+      --st-amber: #f2c75c;   --st-amber-bg: #3a3018;
+      --st-red: #f2857e;     --st-red-bg: #3e2123;
+      --st-gray: #b9a995;    --st-gray-bg: #26394d;
       --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #142129;
-    --surface: #1b2c36;
-    --surface-alt: #223743;
-    --border: #2f4858;
-    --text: #eef6f8;
-    --text-muted: #a8bec7;
-    --text-faint: #6f8a96;
+    /* Modo escuro "azulterra": azul profundo + tons de terra */
+    --bg: #0e1b29;
+    --surface: #152739;
+    --surface-alt: #1c3147;
+    --border: #2b4561;
+    --text: #f3ece2;
+    --text-muted: #cbb9a3;
+    --text-faint: #8f8070;
     --brand: #00a5cf;
-    --accent: #25a1be;
-    --accent-soft: #0e3a47;
-    --accent-contrast: #ffffff;
-    --warn: #f2c75c;
+    --accent: #e3956a;
+    --accent-soft: #3a2b24;
+    --accent-contrast: #1b0f08;
+    --warn: #e9b872;
     --backdrop: rgba(0, 0, 0, 0.6);
+    --hero-bg: #1e3d58;
+    --hero-fg: #ffffff;
+    --hero-label: #edbb92;
     --tl-line: #ffffff;
     --tl-ink: #ffffff;
-    --st-green: #7ae582;   --st-green-bg: #173826;
-    --st-amber: #f2c75c;   --st-amber-bg: #3a3015;
-    --st-red: #f2857e;     --st-red-bg: #3a1c1c;
-    --st-gray: #a8bec7;    --st-gray-bg: #2a3d48;
+    --st-green: #7ae582;   --st-green-bg: #163528;
+    --st-amber: #f2c75c;   --st-amber-bg: #3a3018;
+    --st-red: #f2857e;     --st-red-bg: #3e2123;
+    --st-gray: #b9a995;    --st-gray-bg: #26394d;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
     color-scheme: dark;
   }
@@ -129,6 +137,8 @@
   .page-head h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
   .page-head p { margin: 2px 0 0; font-size: 13px; color: var(--text-muted); }
   .page-head #menuBtn { display: none; }
+  .theme-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .theme-btn svg { width: 15px; height: 15px; }
   .shell { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); min-height: 100vh; }
 
   .sidebar {
@@ -577,6 +587,7 @@
     .page-head img { width: 32px; height: 32px; }
     .page-head h1 { font-size: 19px; }
     .page-head p { display: none; }
+    .theme-btn span { display: none; }
     .sidebar { padding-left: 16px; padding-right: 16px; box-shadow: var(--shadow); }
     .main { padding: 6px 16px 48px; }
     .next { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 86%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
@@ -601,7 +612,7 @@
 
   /* ---------- Impressão ---------- */
   @media print {
-    .sidebar, #menuBtn, .scrim, .controls, .preview-flag, dialog { display: none !important; }
+    .sidebar, #menuBtn, .theme-btn, .scrim, .controls, .preview-flag, dialog { display: none !important; }
     .shell { display: block; }
     .main { padding: 0; }
     .panel { box-shadow: none; }
@@ -617,6 +628,10 @@
     <h1>Eventos de curta duração</h1>
     <p>Eventos com oportunidades de venda de campanhas no digital</p>
   </div>
+  <button class="btn theme-btn" id="themeBtn" type="button" aria-pressed="false">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M13.5 9.8A5.8 5.8 0 0 1 6.2 2.5a5.8 5.8 0 1 0 7.3 7.3z"/></svg>
+    <span id="themeLabel">Modo escuro</span>
+  </button>
 </header>
 <div class="shell" id="shell">
   <aside class="sidebar" id="sidebar" aria-label="Menu">
@@ -1576,6 +1591,38 @@
     if (state.view !== "linha" || !state.lastSig) return;
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(render, 150);
+  });
+
+  /* ---------------- Tema claro/escuro ---------------- */
+  // Sem escolha salva, segue o aparelho; o botão grava a escolha neste navegador.
+  var darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  function isDark() {
+    var t = document.documentElement.getAttribute("data-theme");
+    return t ? t === "dark" : !!(darkQuery && darkQuery.matches);
+  }
+  function syncThemeBtn() {
+    var dark = isDark();
+    $("themeBtn").setAttribute("aria-pressed", String(dark));
+    $("themeLabel").textContent = dark ? "Modo claro" : "Modo escuro";
+    $("themeBtn").setAttribute("aria-label", dark ? "Ativar modo claro" : "Ativar modo escuro");
+  }
+  try {
+    var saved = localStorage.getItem("eventos-tema");
+    if (saved === "dark" || saved === "light") document.documentElement.setAttribute("data-theme", saved);
+  } catch (err) { /* armazenamento indisponível */ }
+  $("themeBtn").addEventListener("click", function () {
+    var next = isDark() ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("eventos-tema", next); } catch (err) { /* ignorado */ }
+    syncThemeBtn();
+  });
+  if (darkQuery && darkQuery.addEventListener) darkQuery.addEventListener("change", syncThemeBtn);
+  syncThemeBtn();
+
+  window.addEventListener("hashchange", function () {
+    if (!state.lastSig) return;
+    readHash();
+    render();
   });
 
   /* ---------------- Inicialização ---------------- */
