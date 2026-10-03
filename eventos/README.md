@@ -20,13 +20,13 @@ Status, Transmissão LF), Legenda e Dados (Atualizar, Imprimir / PDF).
 
 - **Linha do tempo** (padrão): de hoje até 1, 2 ou 3 meses à frente, espaçamento
   proporcional às datas, nome e data de cada evento, marcos de mês e "Hoje".
-  Abaixo da linha, cards grandes de destaque com:
-  - todos os eventos em andamento hoje, e
-  - todos os eventos que começam na próxima data com evento.
-  Cancelados não entram no destaque e o filtro de mês não o afeta.
+
 - **Calendário**: mês a mês, cores da legenda, detalhes ao clicar.
 - **Cards**: um card por evento, por mês ou todos.
 - **Lista**: tabela com todas as colunas, agrupada por mês.
+
+**Próximo evento** (topo de todas as visões, ignora os filtros): cards compactos com todos os
+eventos em andamento hoje e todos os que começam na próxima data com evento. Cancelados não entram.
 
 O filtro de Mês restringe todas as visões ao mês escolhido. Eventos passados aparecem esmaecidos.
 
