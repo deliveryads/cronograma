@@ -28,6 +28,9 @@ Status, Transmissão LF), Legenda e Dados (Atualizar, Imprimir / PDF).
 **Próximo evento** (topo de todas as visões, ignora os filtros): cards compactos com todos os
 eventos em andamento hoje e todos os que começam na próxima data com evento. Cancelados não entram.
 
+**Modo escuro**: botão no cabeçalho. Sem escolha salva, a página segue o tema do aparelho;
+ao clicar, a escolha fica gravada neste navegador. Paleta "azulterra" (azul profundo + tons de terra).
+
 O filtro de Mês restringe todas as visões ao mês escolhido. Eventos passados aparecem esmaecidos.
 
 Legenda (coluna Status): Confirmado = verde, A confirmar = amarelo, Cancelado = vermelho;

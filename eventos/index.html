@@ -12,9 +12,9 @@
     --surface: #ffffff;
     --surface-alt: #e8f0f2;
     --border: #d3e0e4;
-    --text: #2f4858;
-    --text-muted: #4f6b7a;
-    --text-faint: #7d95a1;
+    --text: #1f3442;
+    --text-muted: #3c5664;
+    --text-faint: #687f8b;
     --brand: #00a5cf;
     --accent: #004e64;
     --accent-soft: #d6f1f8;
@@ -50,49 +50,57 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #142129;
-      --surface: #1b2c36;
-      --surface-alt: #223743;
-      --border: #2f4858;
-      --text: #eef6f8;
-      --text-muted: #a8bec7;
-      --text-faint: #6f8a96;
+      /* Modo escuro "azulterra": azul profundo + tons de terra */
+      --bg: #0e1b29;
+      --surface: #152739;
+      --surface-alt: #1c3147;
+      --border: #2b4561;
+      --text: #fffaf3;
+      --text-muted: #ecdcc7;
+      --text-faint: #b8a68f;
       --brand: #00a5cf;
-      --accent: #25a1be;
-      --accent-soft: #0e3a47;
-      --accent-contrast: #ffffff;
-      --warn: #f2c75c;
+      --accent: #f0a77c;
+      --accent-soft: #3a2b24;
+      --accent-contrast: #1b0f08;
+      --warn: #e9b872;
       --backdrop: rgba(0, 0, 0, 0.6);
+      --hero-bg: #1e3d58;
+      --hero-fg: #ffffff;
+      --hero-label: #ffcfa6;
       --tl-line: #ffffff;
       --tl-ink: #ffffff;
-      --st-green: #7ae582;   --st-green-bg: #173826;
-      --st-amber: #f2c75c;   --st-amber-bg: #3a3015;
-      --st-red: #f2857e;     --st-red-bg: #3a1c1c;
-      --st-gray: #a8bec7;    --st-gray-bg: #2a3d48;
+      --st-green: #7ae582;   --st-green-bg: #163528;
+      --st-amber: #f2c75c;   --st-amber-bg: #3a3018;
+      --st-red: #f2857e;     --st-red-bg: #3e2123;
+      --st-gray: #d2c3ae;    --st-gray-bg: #26394d;
       --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #142129;
-    --surface: #1b2c36;
-    --surface-alt: #223743;
-    --border: #2f4858;
-    --text: #eef6f8;
-    --text-muted: #a8bec7;
-    --text-faint: #6f8a96;
+    /* Modo escuro "azulterra": azul profundo + tons de terra */
+    --bg: #0e1b29;
+    --surface: #152739;
+    --surface-alt: #1c3147;
+    --border: #2b4561;
+    --text: #fffaf3;
+    --text-muted: #ecdcc7;
+    --text-faint: #b8a68f;
     --brand: #00a5cf;
-    --accent: #25a1be;
-    --accent-soft: #0e3a47;
-    --accent-contrast: #ffffff;
-    --warn: #f2c75c;
+    --accent: #f0a77c;
+    --accent-soft: #3a2b24;
+    --accent-contrast: #1b0f08;
+    --warn: #e9b872;
     --backdrop: rgba(0, 0, 0, 0.6);
+    --hero-bg: #1e3d58;
+    --hero-fg: #ffffff;
+    --hero-label: #ffcfa6;
     --tl-line: #ffffff;
     --tl-ink: #ffffff;
-    --st-green: #7ae582;   --st-green-bg: #173826;
-    --st-amber: #f2c75c;   --st-amber-bg: #3a3015;
-    --st-red: #f2857e;     --st-red-bg: #3a1c1c;
-    --st-gray: #a8bec7;    --st-gray-bg: #2a3d48;
+    --st-green: #7ae582;   --st-green-bg: #163528;
+    --st-amber: #f2c75c;   --st-amber-bg: #3a3018;
+    --st-red: #f2857e;     --st-red-bg: #3e2123;
+    --st-gray: #d2c3ae;    --st-gray-bg: #26394d;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
     color-scheme: dark;
   }
@@ -129,6 +137,8 @@
   .page-head h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
   .page-head p { margin: 2px 0 0; font-size: 13px; color: var(--text-muted); }
   .page-head #menuBtn { display: none; }
+  .theme-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .theme-btn svg { width: 15px; height: 15px; }
   .shell { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); min-height: 100vh; }
 
   .sidebar {
@@ -249,28 +259,31 @@
     background: var(--hero-bg);
     color: var(--hero-fg);
     border-radius: var(--radius-md);
-    padding: 14px 18px;
+    padding: 10px 14px;
     display: grid;
-    gap: 8px;
+    gap: 5px;
     align-content: start;
     box-shadow: var(--shadow);
-    border-left: 6px solid var(--c);
+    border-left: 5px solid var(--c);
     cursor: pointer;
   }
   .hero-eyebrow {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--hero-label);
   }
-  .hero-name { font-size: 22px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.15; margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 6px 20px; }
-  .hero-meta div, .hero-obs { display: grid; gap: 1px; min-width: 0; }
-  .hero .k { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hero-label); }
-  .hero .v { font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; }
-  .hero-obs p { margin: 0; font-size: 13px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .hero-st { display: inline-flex; align-items: center; gap: 8px; }
+  .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .hero-top .hero-eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .hero-name { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+  .hero-meta div { display: grid; gap: 0; min-width: 0; }
+  .hero .k { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hero-label); }
+  .hero .v { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hero-obs { margin: 0; font-size: 12.5px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hero-obs .k { margin-right: 6px; }
+  .hero-st { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
   .hero-st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
   .next-empty { padding: 18px 20px; color: var(--text-muted); }
   .view-head {
@@ -334,7 +347,7 @@
   }
   .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
 
-  .past { opacity: 0.5; }
+  .past { opacity: 0.62; }
 
   /* ---------- Linha do tempo ---------- */
   .tl-wrap { padding: 8px 0 4px; overflow: hidden; }
@@ -577,13 +590,13 @@
     .page-head img { width: 32px; height: 32px; }
     .page-head h1 { font-size: 19px; }
     .page-head p { display: none; }
+    .theme-btn span { display: none; }
     .sidebar { padding-left: 16px; padding-right: 16px; box-shadow: var(--shadow); }
     .main { padding: 6px 16px 48px; }
     .next { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 86%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
     .next .hero { scroll-snap-align: start; }
     .next:has(.hero:only-child) { grid-auto-columns: 100%; }
-    .hero { padding: 12px 14px; }
-    .hero-name { font-size: 19px; }
+    .hero-name { font-size: 17px; }
   }
   @media (max-width: 720px) {
     .week { min-height: 76px; }
@@ -601,7 +614,7 @@
 
   /* ---------- Impressão ---------- */
   @media print {
-    .sidebar, #menuBtn, .scrim, .controls, .preview-flag, dialog { display: none !important; }
+    .sidebar, #menuBtn, .theme-btn, .scrim, .controls, .preview-flag, dialog { display: none !important; }
     .shell { display: block; }
     .main { padding: 0; }
     .panel { box-shadow: none; }
@@ -617,6 +630,10 @@
     <h1>Eventos de curta duração</h1>
     <p>Eventos com oportunidades de venda de campanhas no digital</p>
   </div>
+  <button class="btn theme-btn" id="themeBtn" type="button" aria-pressed="false">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M13.5 9.8A5.8 5.8 0 0 1 6.2 2.5a5.8 5.8 0 1 0 7.3 7.3z"/></svg>
+    <span id="themeLabel">Modo escuro</span>
+  </button>
 </header>
 <div class="shell" id="shell">
   <aside class="sidebar" id="sidebar" aria-label="Menu">
@@ -1222,14 +1239,15 @@
       if (state.roleIndex.transmissao != null) {
         meta += '<div><span class="k">' + esc(state.columns[state.roleIndex.transmissao].label) + '</span><span class="v">' + esc(e.values.transmissao || "—") + "</span></div>";
       }
-      if (e.status) meta += '<div><span class="k">Status</span><span class="v hero-st">' + esc(e.status) + "</span></div>";
+      var obsText = e.values.obs || "—";
       var obs = state.roleIndex.obs != null
-        ? '<div class="hero-obs"><span class="k">' + esc(state.columns[state.roleIndex.obs].label) + "</span><p>" + esc(e.values.obs || "—") + "</p></div>"
+        ? '<p class="hero-obs" title="' + esc(obsText) + '"><span class="k">' + esc(state.columns[state.roleIndex.obs].label) + "</span>" + esc(obsText) + "</p>"
         : "";
       return '<article class="hero" role="button" tabindex="0" data-ev="' + e.id + '" style="' + colorStyle(e.status) + '">' +
-        '<span class="hero-eyebrow">' + (sameDay(e.inicio, t) && sameDay(e.fim, t) ? "Acontece hoje"
-          : e.inicio <= t ? "Em andamento · " + (sameDay(e.fim, t) ? "termina hoje" : "termina em " + dayDiff(t, e.fim) + (dayDiff(t, e.fim) === 1 ? " dia" : " dias"))
-          : "Próximo evento · " + untilText(e.inicio)) + "</span>" +
+        '<div class="hero-top"><span class="hero-eyebrow">' + (sameDay(e.inicio, t) && sameDay(e.fim, t) ? "Acontece hoje"
+          : e.inicio <= t ? "Em andamento · " + (sameDay(e.fim, t) ? "termina hoje" : "até " + fmtShort(e.fim))
+          : "Próximo · " + untilText(e.inicio)) + "</span>" +
+        (e.status ? '<span class="hero-st">' + esc(e.status) + "</span>" : "") + "</div>" +
         '<h2 class="hero-name">' + esc(e.nome) + '</h2><div class="hero-meta">' + meta + "</div>" + obs + "</article>";
     }).join("") + "</div>";
   }
@@ -1576,6 +1594,38 @@
     if (state.view !== "linha" || !state.lastSig) return;
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(render, 150);
+  });
+
+  /* ---------------- Tema claro/escuro ---------------- */
+  // Sem escolha salva, segue o aparelho; o botão grava a escolha neste navegador.
+  var darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  function isDark() {
+    var t = document.documentElement.getAttribute("data-theme");
+    return t ? t === "dark" : !!(darkQuery && darkQuery.matches);
+  }
+  function syncThemeBtn() {
+    var dark = isDark();
+    $("themeBtn").setAttribute("aria-pressed", String(dark));
+    $("themeLabel").textContent = dark ? "Modo claro" : "Modo escuro";
+    $("themeBtn").setAttribute("aria-label", dark ? "Ativar modo claro" : "Ativar modo escuro");
+  }
+  try {
+    var saved = localStorage.getItem("eventos-tema");
+    if (saved === "dark" || saved === "light") document.documentElement.setAttribute("data-theme", saved);
+  } catch (err) { /* armazenamento indisponível */ }
+  $("themeBtn").addEventListener("click", function () {
+    var next = isDark() ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("eventos-tema", next); } catch (err) { /* ignorado */ }
+    syncThemeBtn();
+  });
+  if (darkQuery && darkQuery.addEventListener) darkQuery.addEventListener("change", syncThemeBtn);
+  syncThemeBtn();
+
+  window.addEventListener("hashchange", function () {
+    if (!state.lastSig) return;
+    readHash();
+    render();
   });
 
   /* ---------------- Inicialização ---------------- */
