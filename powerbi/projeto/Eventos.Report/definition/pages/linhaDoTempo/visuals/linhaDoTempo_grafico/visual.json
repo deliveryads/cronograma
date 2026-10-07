@@ -1,0 +1,269 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.3.0/schema.json",
+  "name": "linhaDoTempo_grafico",
+  "position": {
+    "x": 272,
+    "y": 322,
+    "z": 12000,
+    "width": 992,
+    "height": 560,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "deneb7E15AEF80B9E4D4F8E12924291ECE89A",
+    "query": {
+      "queryState": {
+        "dataset": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Eventos"
+                    }
+                  },
+                  "Property": "Evento"
+                }
+              },
+              "queryRef": "Eventos.Evento",
+              "nativeQueryRef": "Evento"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Eventos"
+                    }
+                  },
+                  "Property": "InicioISO"
+                }
+              },
+              "queryRef": "Eventos.InicioISO",
+              "nativeQueryRef": "InicioISO"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Eventos"
+                    }
+                  },
+                  "Property": "FimISO"
+                }
+              },
+              "queryRef": "Eventos.FimISO",
+              "nativeQueryRef": "FimISO"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Eventos"
+                    }
+                  },
+                  "Property": "Status"
+                }
+              },
+              "queryRef": "Eventos.Status",
+              "nativeQueryRef": "Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Eventos"
+                    }
+                  },
+                  "Property": "Cor"
+                }
+              },
+              "queryRef": "Eventos.Cor",
+              "nativeQueryRef": "Cor"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Eventos"
+                    }
+                  },
+                  "Property": "Lane"
+                }
+              },
+              "queryRef": "Eventos.Lane",
+              "nativeQueryRef": "Lane"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Eventos"
+                    }
+                  },
+                  "Property": "ID"
+                }
+              },
+              "queryRef": "Eventos.ID",
+              "nativeQueryRef": "ID"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Medidas"
+                    }
+                  },
+                  "Property": "Periodo Meses"
+                }
+              },
+              "queryRef": "Medidas.Periodo Meses",
+              "nativeQueryRef": "Periodo Meses"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Medidas"
+                    }
+                  },
+                  "Property": "Mes Selecionado"
+                }
+              },
+              "queryRef": "Medidas.Mes Selecionado",
+              "nativeQueryRef": "Mes Selecionado"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "vega": [
+        {
+          "properties": {
+            "jsonSpec": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\"description\":\"Linha do tempo: de hoje até N meses (ou o mês do filtro). Campos: Evento, InicioISO, FimISO, Cor, Lane, Periodo Meses, Mes Selecionado.\",\"data\":{\"name\":\"dataset\"},\"width\":\"container\",\"height\":\"container\",\"autosize\":{\"type\":\"fit\",\"contains\":\"padding\"},\"padding\":{\"left\":12,\"right\":12,\"top\":8,\"bottom\":8},\"transform\":[{\"calculate\":\"datetime(year(now()), month(now()), date(now()))\",\"as\":\"hoje\"},{\"calculate\":\"datum[''Periodo Meses''] > 0 ? datum[''Periodo Meses''] : 1\",\"as\":\"meses\"},{\"calculate\":\"datum[''Mes Selecionado''] ? toDate(datum[''Mes Selecionado''] + ''-01T00:00:00'') : datum.hoje\",\"as\":\"winStart\"},{\"calculate\":\"datum[''Mes Selecionado''] ? datetime(year(datum.winStart), month(datum.winStart) + 1, 1) : datetime(year(datum.hoje), month(datum.hoje) + datum.meses, date(datum.hoje))\",\"as\":\"winEnd\"},{\"calculate\":\"toDate(datum.InicioISO + ''T00:00:00'')\",\"as\":\"ini\"},{\"calculate\":\"toDate(datum.FimISO + ''T00:00:00'')\",\"as\":\"fim\"},{\"calculate\":\"datetime(year(datum.fim), month(datum.fim), date(datum.fim) + 1)\",\"as\":\"fimExcl\"}],\"layer\":[{\"description\":\"Janela (define o eixo) e marcos de mês\",\"transform\":[{\"aggregate\":[{\"op\":\"min\",\"field\":\"winStart\",\"as\":\"ws\"},{\"op\":\"max\",\"field\":\"winEnd\",\"as\":\"we\"}]},{\"calculate\":\"datetime(year(datum.ws), month(datum.ws) + 1, 1)\",\"as\":\"proxMes\"},{\"calculate\":\"(datum.proxMes - datum.ws) < (datum.we - datum.ws) * 0.12\",\"as\":\"esconde0\"},{\"calculate\":\"sequence(0, 5)\",\"as\":\"k\"},{\"flatten\":[\"k\"]},{\"calculate\":\"datum.k == 0 ? datum.ws : datetime(year(datum.ws), month(datum.ws) + datum.k, 1)\",\"as\":\"m\"},{\"filter\":\"datum.m < datum.we\"},{\"calculate\":\"[''janeiro'',''fevereiro'',''março'',''abril'',''maio'',''junho'',''julho'',''agosto'',''setembro'',''outubro'',''novembro'',''dezembro''][month(datum.m)]\",\"as\":\"nomeMes\"},{\"calculate\":\"(datum.k == 0 && datum.esconde0) ? '''' : upper(datum.nomeMes + ((datum.k == 0 || month(datum.m) == 0 || (datum.k == 1 && datum.esconde0)) ? '' '' + year(datum.m) : ''''))\",\"as\":\"rotulo\"}],\"layer\":[{\"mark\":{\"type\":\"rule\",\"strokeDash\":[3,3],\"color\":\"#8F8070\",\"strokeWidth\":1},\"encoding\":{\"x\":{\"field\":\"m\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"y\":{\"value\":0},\"y2\":{\"value\":\"height\"}}},{\"mark\":{\"type\":\"text\",\"align\":\"left\",\"baseline\":\"top\",\"dx\":6,\"dy\":4,\"fontWeight\":800,\"fontSize\":12,\"color\":\"#FFFAF3\",\"letterSpacing\":0.6},\"encoding\":{\"x\":{\"field\":\"m\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"y\":{\"value\":0},\"text\":{\"field\":\"rotulo\"}}},{\"mark\":{\"type\":\"point\",\"opacity\":0},\"encoding\":{\"x\":{\"field\":\"ws\",\"type\":\"temporal\",\"scale\":{\"nice\":false}}}},{\"mark\":{\"type\":\"point\",\"opacity\":0},\"encoding\":{\"x\":{\"field\":\"we\",\"type\":\"temporal\",\"scale\":{\"nice\":false}}}},{\"mark\":{\"type\":\"rule\",\"color\":\"#FFFFFF\",\"strokeWidth\":3},\"encoding\":{\"x\":{\"field\":\"ws\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"x2\":{\"field\":\"we\"},\"y\":{\"datum\":0,\"type\":\"quantitative\",\"scale\":{\"domain\":[-2.8,2.8],\"nice\":false}}}}]},{\"description\":\"Hoje\",\"transform\":[{\"aggregate\":[{\"op\":\"min\",\"field\":\"hoje\",\"as\":\"h\"},{\"op\":\"min\",\"field\":\"winStart\",\"as\":\"ws\"},{\"op\":\"max\",\"field\":\"winEnd\",\"as\":\"we\"}]},{\"filter\":\"datum.h >= datum.ws && datum.h < datum.we\"},{\"calculate\":\"''Hoje · '' + timeFormat(datum.h, ''%d/%m'')\",\"as\":\"rotulo\"}],\"layer\":[{\"mark\":{\"type\":\"rule\",\"color\":\"#F0A77C\",\"strokeWidth\":2},\"encoding\":{\"x\":{\"field\":\"h\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"y\":{\"datum\":-0.25,\"type\":\"quantitative\"},\"y2\":{\"datum\":0.25}}},{\"mark\":{\"type\":\"text\",\"align\":\"left\",\"baseline\":\"bottom\",\"dx\":2,\"dy\":-4,\"fontWeight\":700,\"fontSize\":11,\"color\":\"#F0A77C\"},\"encoding\":{\"x\":{\"field\":\"h\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"y\":{\"value\":\"height\"},\"text\":{\"field\":\"rotulo\"}}}]},{\"description\":\"Eventos\",\"transform\":[{\"filter\":\"datum.ini < datum.winEnd && datum.fimExcl > datum.winStart\"},{\"calculate\":\"datum.ini < datum.winStart ? datum.winStart : datum.ini\",\"as\":\"x0\"},{\"calculate\":\"datum.fimExcl > datum.winEnd ? datum.winEnd : datum.fimExcl\",\"as\":\"x1\"},{\"calculate\":\"(datum.Lane % 2 == 0 ? 1 : -1) * (floor(datum.Lane / 2) + 1)\",\"as\":\"nivel\"},{\"calculate\":\"datum.nivel > 0 ? datum.nivel - 0.42 : datum.nivel + 0.2\",\"as\":\"yBarra\"},{\"calculate\":\"datum.FimISO == datum.InicioISO ? timeFormat(datum.ini, ''%d/%m'') : timeFormat(datum.ini, ''%d/%m'') + '' – '' + timeFormat(datum.fim, ''%d/%m'')\",\"as\":\"datas\"}],\"layer\":[{\"mark\":{\"type\":\"rule\",\"strokeWidth\":1.5},\"encoding\":{\"x\":{\"field\":\"x0\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"y\":{\"field\":\"yBarra\",\"type\":\"quantitative\"},\"y2\":{\"datum\":0},\"color\":{\"field\":\"Cor\",\"type\":\"nominal\",\"scale\":null}}},{\"mark\":{\"type\":\"rect\",\"height\":4,\"cornerRadius\":2},\"encoding\":{\"x\":{\"field\":\"x0\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"x2\":{\"field\":\"x1\"},\"y\":{\"field\":\"yBarra\",\"type\":\"quantitative\"},\"color\":{\"field\":\"Cor\",\"type\":\"nominal\",\"scale\":null}}},{\"mark\":{\"type\":\"point\",\"filled\":true,\"size\":90,\"stroke\":\"#152739\",\"strokeWidth\":2,\"opacity\":1},\"encoding\":{\"x\":{\"field\":\"x0\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"y\":{\"datum\":0,\"type\":\"quantitative\"},\"color\":{\"field\":\"Cor\",\"type\":\"nominal\",\"scale\":null}}},{\"mark\":{\"type\":\"text\",\"align\":\"left\",\"baseline\":\"bottom\",\"dx\":2,\"dy\":-20,\"fontWeight\":700,\"fontSize\":13,\"color\":\"#FFFFFF\"},\"encoding\":{\"x\":{\"field\":\"x0\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"y\":{\"field\":\"yBarra\",\"type\":\"quantitative\"},\"text\":{\"field\":\"Evento\"},\"tooltip\":[{\"field\":\"Evento\"},{\"field\":\"datas\",\"title\":\"Data\"},{\"field\":\"Status\"}]}},{\"mark\":{\"type\":\"text\",\"align\":\"left\",\"baseline\":\"bottom\",\"dx\":2,\"dy\":-6,\"fontWeight\":600,\"fontSize\":12,\"color\":\"#FFFFFF\"},\"encoding\":{\"x\":{\"field\":\"x0\",\"type\":\"temporal\",\"scale\":{\"nice\":false}},\"y\":{\"field\":\"yBarra\",\"type\":\"quantitative\"},\"text\":{\"field\":\"datas\"}}}]}],\"resolve\":{\"scale\":{\"x\":\"shared\",\"y\":\"shared\"}},\"config\":{\"view\":{\"stroke\":null},\"font\":\"Segoe UI, sans-serif\",\"axisX\":{\"disable\":true},\"axisY\":{\"disable\":true},\"scale\":{\"zero\":false}}}'"
+                }
+              }
+            },
+            "jsonConfig": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{}'"
+                }
+              }
+            },
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'vegaLite'"
+                }
+              }
+            },
+            "enableTooltips": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "isNewDialogOpen": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#152739'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#2B4561'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

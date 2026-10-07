@@ -1,0 +1,447 @@
+{
+  "compatibilityLevel": 1567,
+  "model": {
+    "culture": "pt-BR",
+    "sourceQueryCulture": "pt-BR",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": true
+    },
+    "expressions": [
+      {
+        "name": "CaminhoExcel",
+        "kind": "m",
+        "expression": "\"COLE_AQUI_O_CAMINHO_DO_EXCEL\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Text"
+          }
+        ]
+      }
+    ],
+    "tables": [
+      {
+        "name": "Eventos",
+        "columns": [
+          {
+            "name": "Mês",
+            "dataType": "string",
+            "sourceColumn": "Mês",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "Data início",
+            "dataType": "dateTime",
+            "sourceColumn": "Data início",
+            "summarizeBy": "none",
+            "formatString": "dd/MM/yyyy"
+          },
+          {
+            "name": "Data fim",
+            "dataType": "dateTime",
+            "sourceColumn": "Data fim",
+            "summarizeBy": "none",
+            "formatString": "dd/MM/yyyy"
+          },
+          {
+            "name": "Evento",
+            "dataType": "string",
+            "sourceColumn": "Evento",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Status",
+            "dataType": "string",
+            "sourceColumn": "Status",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Transmissão LF",
+            "dataType": "string",
+            "sourceColumn": "Transmissão LF",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Observação",
+            "dataType": "string",
+            "sourceColumn": "Observação",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "ID",
+            "dataType": "int64",
+            "sourceColumn": "ID",
+            "summarizeBy": "none",
+            "formatString": "0",
+            "isHidden": true
+          },
+          {
+            "type": "calculated",
+            "name": "StatusCat",
+            "dataType": "string",
+            "isDataTypeInferred": false,
+            "expression": "VAR s = LOWER ( TRIM ( Eventos[Status] ) ) RETURN SWITCH ( TRUE (), s = \"confirmado\", \"Confirmado\", s = \"a confirmar\", \"A confirmar\", s = \"cancelado\", \"Cancelado\", \"Outros\" )",
+            "summarizeBy": "none"
+          },
+          {
+            "type": "calculated",
+            "name": "Cor",
+            "dataType": "string",
+            "isDataTypeInferred": false,
+            "expression": "SWITCH ( Eventos[StatusCat], \"Confirmado\", \"#7AE582\", \"A confirmar\", \"#F2C75C\", \"Cancelado\", \"#F2857E\", \"#B9A995\" )",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "type": "calculated",
+            "name": "InicioISO",
+            "dataType": "string",
+            "isDataTypeInferred": false,
+            "expression": "FORMAT ( Eventos[Data início], \"yyyy-MM-dd\" )",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "type": "calculated",
+            "name": "FimISO",
+            "dataType": "string",
+            "isDataTypeInferred": false,
+            "expression": "FORMAT ( Eventos[Data fim], \"yyyy-MM-dd\" )",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "type": "calculated",
+            "name": "Lane",
+            "dataType": "int64",
+            "isDataTypeInferred": false,
+            "expression": "MOD ( Eventos[ID] - 1, 4 )",
+            "summarizeBy": "none",
+            "formatString": "0",
+            "isHidden": true
+          },
+          {
+            "type": "calculated",
+            "name": "Dias",
+            "dataType": "int64",
+            "isDataTypeInferred": false,
+            "expression": "INT ( Eventos[Data fim] - Eventos[Data início] ) + 1",
+            "summarizeBy": "none",
+            "formatString": "0"
+          },
+          {
+            "type": "calculated",
+            "name": "Datas",
+            "dataType": "string",
+            "isDataTypeInferred": false,
+            "expression": "IF ( Eventos[Data início] = Eventos[Data fim], FORMAT ( Eventos[Data início], \"dd/MM/yyyy\" ), FORMAT ( Eventos[Data início], \"dd/MM\" ) & \" a \" & FORMAT ( Eventos[Data fim], \"dd/MM/yyyy\" ) )",
+            "summarizeBy": "none"
+          },
+          {
+            "type": "calculated",
+            "name": "Dia da semana",
+            "dataType": "string",
+            "isDataTypeInferred": false,
+            "expression": "VAR a = FORMAT ( Eventos[Data início], \"dddd\" ) VAR b = FORMAT ( Eventos[Data fim], \"dddd\" ) RETURN UPPER ( LEFT ( a, 1 ) ) & MID ( a, 2, 30 ) & IF ( Eventos[Data início] <> Eventos[Data fim], \" a \" & b )",
+            "summarizeBy": "none"
+          },
+          {
+            "type": "calculated",
+            "name": "Mês de início",
+            "dataType": "string",
+            "isDataTypeInferred": false,
+            "expression": "FORMAT ( Eventos[Data início], \"yyyy-MM\" )",
+            "summarizeBy": "none",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Eventos",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    // CaminhoExcel: caminho do arquivo (Excel > Arquivo > Informações > Copiar caminho) ou arquivo local.",
+                "    Bruto0 = Text.Trim(CaminhoExcel),",
+                "    Caminho = Text.BeforeDelimiter(Bruto0, \"?\"),",
+                "    EhWeb = Text.StartsWith(Text.Lower(Caminho), \"http\"),",
+                "    Partes = if EhWeb then Uri.Parts(Bruto0) else null,",
+                "    Segmentos = if EhWeb then List.Select(Text.Split(Partes[Path], \"/\"), each _ <> \"\") else {},",
+                "    // Site do SharePoint/OneDrive = servidor + /sites/<nome> (ou /teams/<nome>, /personal/<nome>)",
+                "    PosSite = List.PositionOfAny(List.Transform(Segmentos, Text.Lower), {\"sites\", \"teams\", \"personal\"}),",
+                "    Site = if EhWeb then Partes[Scheme] & \"://\" & Partes[Host] & (if PosSite >= 0 then \"/\" & Segmentos{PosSite} & \"/\" & Segmentos{PosSite + 1} else \"\") else null,",
+                "    // Nome do arquivo: parâmetro file= (links do navegador) ou último trecho do caminho",
+                "    NomeArquivo = if not EhWeb then null else if Record.HasFields(Partes[Query], \"file\") then Record.Field(Partes[Query], \"file\") else List.Last(Segmentos),",
+                "    Arquivos = if EhWeb then SharePoint.Files(Site, [ApiVersion = 15]) else null,",
+                "    Encontrados = if EhWeb then Table.SelectRows(Arquivos, each Text.Lower([Name]) = Text.Lower(NomeArquivo) or Text.Lower(Uri.EscapeDataString([Name])) = Text.Lower(NomeArquivo)) else null,",
+                "    Conteudo = if EhWeb then",
+                "            (if Table.IsEmpty(Encontrados) then error Error.Record(\"Arquivo não encontrado\", \"O arquivo '\" & NomeArquivo & \"' não foi encontrado no site \" & Site & \". Confira o parâmetro CaminhoExcel.\") else Encontrados{0}[Content])",
+                "        else File.Contents(Caminho),",
+                "    Pasta = Excel.Workbook(Conteudo, null, true),",
+                "    // 1) Tabela do Excel chamada Eventos; 2) senão, primeira planilha, com o cabeçalho localizado nas 10 primeiras linhas",
+                "    TemTabela = Table.MatchesAnyRows(Pasta, each [Kind] = \"Table\" and [Item] = \"Eventos\"),",
+                "    Planilha = Table.SelectRows(Pasta, each [Kind] = \"Sheet\"){0}[Data],",
+                "    PosCabecalho = List.PositionOf(List.Transform(Table.ToRows(Table.FirstN(Planilha, 10)), (linha) => List.Contains(List.Transform(linha, each if _ = null then \"\" else Text.Lower(Text.Trim(Text.From(_)))), \"evento\")), true),",
+                "    DaPlanilha = Table.PromoteHeaders(Table.Skip(Planilha, if PosCabecalho < 0 then 0 else PosCabecalho), [PromoteAllScalars = true]),",
+                "    Bruto = if TemTabela then Pasta{[Item = \"Eventos\", Kind = \"Table\"]}[Data] else DaPlanilha,",
+                "    Colunas = Table.SelectColumns(Bruto, {\"Mês\", \"Data início\", \"Data fim\", \"Evento\", \"Status\", \"Transmissão LF\", \"Observação\"}, MissingField.UseNull),",
+                "    Tipos = Table.TransformColumnTypes(Colunas, {{\"Mês\", type text}, {\"Data início\", type date}, {\"Data fim\", type date}, {\"Evento\", type text}, {\"Status\", type text}, {\"Transmissão LF\", type text}, {\"Observação\", type text}}, \"pt-BR\"),",
+                "    Limpo = Table.TransformColumns(Tipos, {{\"Evento\", each if _ = null then null else Text.Trim(_), type text}, {\"Status\", each if _ = null then null else Text.Trim(_), type text}}),",
+                "    Validos = Table.SelectRows(Limpo, each [Evento] <> null and [Evento] <> \"\" and [#\"Data início\"] <> null),",
+                "    ComFim = Table.ReplaceValue(Validos, each [#\"Data fim\"], each if [#\"Data fim\"] = null then [#\"Data início\"] else [#\"Data fim\"], Replacer.ReplaceValue, {\"Data fim\"}),",
+                "    // ReplaceValue com função deixa a coluna sem tipo; tipa de novo como data",
+                "    ComFimTipado = Table.TransformColumnTypes(ComFim, {{\"Data início\", type date}, {\"Data fim\", type date}}),",
+                "    DatasOk = Table.SelectRows(ComFimTipado, each [#\"Data fim\"] >= [#\"Data início\"]),",
+                "    Ordenado = Table.Sort(DatasOk, {{\"Data início\", Order.Ascending}, {\"Evento\", Order.Ascending}}),",
+                "    ComID = Table.AddIndexColumn(Ordenado, \"ID\", 1, 1, Int64.Type)",
+                "in",
+                "    ComID"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Meses",
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "Início do mês",
+            "dataType": "dateTime",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Início do mês]",
+            "summarizeBy": "none",
+            "formatString": "dd/MM/yyyy",
+            "isHidden": true
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Chave",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Chave]",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Mês",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Mês]",
+            "summarizeBy": "none",
+            "sortByColumn": "Chave"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Fim do mês",
+            "dataType": "dateTime",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Fim do mês]",
+            "summarizeBy": "none",
+            "formatString": "dd/MM/yyyy",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Meses",
+            "mode": "import",
+            "source": {
+              "type": "calculated",
+              "expression": "VAR mn = MIN ( Eventos[Data início] ) VAR mx = MAX ( Eventos[Data fim] ) VAR ini = DATE ( YEAR ( mn ), MONTH ( mn ), 1 ) RETURN SELECTCOLUMNS ( FILTER ( CALENDAR ( ini, mx ), DAY ( [Date] ) = 1 ), \"Início do mês\", [Date], \"Chave\", FORMAT ( [Date], \"yyyy-MM\" ), \"Mês\", VAR t = FORMAT ( [Date], \"mmmm\" ) RETURN UPPER ( LEFT ( t, 1 ) ) & MID ( t, 2, 30 ) & \" de \" & YEAR ( [Date] ), \"Fim do mês\", EOMONTH ( [Date], 0 ) )"
+            }
+          }
+        ]
+      },
+      {
+        "name": "EventoMes",
+        "isHidden": true,
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "ID",
+            "dataType": "int64",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[ID]",
+            "summarizeBy": "none",
+            "formatString": "0"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Chave",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Chave]",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "EventoMes",
+            "mode": "import",
+            "source": {
+              "type": "calculated",
+              "expression": "SELECTCOLUMNS ( FILTER ( CROSSJOIN ( SELECTCOLUMNS ( Eventos, \"EvID\", Eventos[ID], \"EvIni\", Eventos[Data início], \"EvFim\", Eventos[Data fim] ), SELECTCOLUMNS ( Meses, \"MChave\", Meses[Chave], \"MIni\", Meses[Início do mês], \"MFim\", Meses[Fim do mês] ) ), [MIni] <= [EvFim] && [MFim] >= [EvIni] ), \"ID\", [EvID], \"Chave\", [MChave] )"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Periodo",
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "Meses",
+            "dataType": "int64",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Meses]",
+            "summarizeBy": "none",
+            "formatString": "0",
+            "isHidden": true
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Período",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Período]",
+            "summarizeBy": "none",
+            "sortByColumn": "Meses"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Periodo",
+            "mode": "import",
+            "source": {
+              "type": "calculated",
+              "expression": "DATATABLE ( \"Meses\", INTEGER, \"Período\", STRING, { { 1, \"1 mês\" }, { 2, \"2 meses\" }, { 3, \"3 meses\" } } )"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Medidas",
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "Coluna",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Coluna]",
+            "summarizeBy": "none",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Medidas",
+            "mode": "import",
+            "source": {
+              "type": "calculated",
+              "expression": "ROW ( \"Coluna\", \"\" )"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Periodo Meses",
+            "expression": "SELECTEDVALUE ( Periodo[Meses], 1 )",
+            "formatString": "0"
+          },
+          {
+            "name": "Mes Selecionado",
+            "expression": "IF ( ISFILTERED ( Meses[Mês] ) || ISFILTERED ( Meses[Chave] ), IF ( HASONEVALUE ( Meses[Chave] ), VALUES ( Meses[Chave] ), \"\" ), \"\" )"
+          },
+          {
+            "name": "Qtd Eventos",
+            "expression": "COUNTROWS ( Eventos ) + 0",
+            "formatString": "0"
+          },
+          {
+            "name": "HTML Destaques",
+            "expression": "VAR hoje = TODAY ()\nVAR base = FILTER ( ALL ( Eventos ), Eventos[StatusCat] <> \"Cancelado\" && Eventos[Data fim] >= hoje )\nVAR prox = MINX ( FILTER ( base, Eventos[Data início] > hoje ), Eventos[Data início] )\nVAR sel = FILTER ( base, Eventos[Data início] <= hoje || Eventos[Data início] = prox )\nRETURN\n    IF (\n        ISEMPTY ( sel ),\n        \"<div class='vazio'>Nenhum evento futuro na planilha.</div>\",\n        \"<div class='next'>\"\n            & CONCATENATEX (\n                sel,\n                VAR ini = Eventos[Data início]\n                VAR fim = Eventos[Data fim]\n                VAR n = INT ( ini - hoje )\n                VAR aviso =\n                    IF ( ini = hoje && fim = hoje, \"Acontece hoje\",\n                        IF ( ini <= hoje,\n                            \"Em andamento · \" & IF ( fim = hoje, \"termina hoje\", \"até \" & FORMAT ( fim, \"dd/MM\" ) ),\n                            \"Próximo · \" & IF ( n = 1, \"amanhã\", \"faltam \" & n & \" dias\" ) ) )\n                RETURN\n                    \"<div class='hero' style='border-left-color:\" & Eventos[Cor] & \"'>\"\n                        & \"<div class='top'><span class='eb'>\" & aviso & \"</span><span class='st'><i style='background:\" & Eventos[Cor] & \"'></i>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Status], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</span></div>\"\n                        & \"<div class='nm'>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Evento], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</div>\"\n                        & \"<div class='meta'><div><b>\" & IF ( ini = fim, \"Data\", \"Datas\" ) & \"</b>\" & Eventos[Datas] & \"</div>\"\n                        & \"<div><b>Dia da semana</b>\" & Eventos[Dia da semana] & \"</div>\"\n                        & \"<div><b>Transmissão LF</b>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( COALESCE ( Eventos[Transmissão LF], \"—\" ), \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</div></div>\"\n                        & \"<div class='obs'><b>Observação</b>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( COALESCE ( Eventos[Observação], \"—\" ), \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</div>\"\n                        & \"</div>\",\n                \"\",\n                Eventos[Data início], ASC,\n                Eventos[Evento], ASC\n            )\n            & \"</div>\"\n    )"
+          },
+          {
+            "name": "HTML Cards",
+            "expression": "VAR hoje = TODAY ()\nRETURN\n    IF (\n        ISEMPTY ( Eventos ),\n        \"<div class='vazio'>Nenhum evento com os filtros selecionados.</div>\",\n        \"<div class='cards'>\"\n            & CONCATENATEX (\n                Eventos,\n                \"<div class='card\" & IF ( Eventos[Data fim] < hoje, \" past\" ) & \"' style='border-top-color:\" & Eventos[Cor] & \"'>\"\n                    & IF ( NOT ISBLANK ( Eventos[Status] ), \"<span class='badge'><i class='dot' style='background:\" & Eventos[Cor] & \"'></i>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Status], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</span>\" )\n                    & \"<h3>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Evento], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</h3>\"\n                    & \"<div class='when'><strong>\" & Eventos[Datas] & \"</strong> · \" & Eventos[Dias] & IF ( Eventos[Dias] = 1, \" dia\", \" dias\" ) & \"</div>\"\n                    & \"<div class='kv'>\"\n                    & IF ( NOT ISBLANK ( Eventos[Transmissão LF] ), \"<b>Transmissão LF</b><span>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Transmissão LF], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</span>\" )\n                    & IF ( NOT ISBLANK ( Eventos[Observação] ), \"<b>Observação</b><span>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Observação], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</span>\" )\n                    & \"</div></div>\",\n                \"\",\n                Eventos[Data início], ASC,\n                Eventos[Evento], ASC\n            )\n            & \"</div>\"\n    )"
+          },
+          {
+            "name": "HTML Lista",
+            "expression": "VAR hoje = TODAY ()\nRETURN\n    IF (\n        ISEMPTY ( Eventos ),\n        \"<div class='vazio'>Nenhum evento com os filtros selecionados.</div>\",\n        \"<table><thead><tr><th>Data</th><th>Evento</th><th>Status</th><th>Transmissão LF</th><th>Observação</th></tr></thead><tbody>\"\n            & CONCATENATEX (\n                VALUES ( Eventos[Mês de início] ),\n                VAR m = Eventos[Mês de início]\n                VAR linhas = FILTER ( Eventos, Eventos[Mês de início] = m )\n                VAR d = MINX ( linhas, Eventos[Data início] )\n                VAR nome = FORMAT ( d, \"mmmm\" )\n                VAR qtd = COUNTROWS ( linhas )\n                RETURN\n                    \"<tr class='grp'><td colspan='5'>\" & UPPER ( LEFT ( nome, 1 ) ) & MID ( nome, 2, 30 ) & \" de \" & YEAR ( d )\n                        & \"<span>\" & qtd & IF ( qtd = 1, \" evento\", \" eventos\" ) & \"</span></td></tr>\"\n                        & CONCATENATEX (\n                            linhas,\n                            \"<tr\" & IF ( Eventos[Data fim] < hoje, \" class='past'\" ) & \">\"\n                                & \"<td class='dt'>\" & Eventos[Datas] & \"</td>\"\n                                & \"<td class='nm2'>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Evento], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</td>\"\n                                & \"<td><i class='dot' style='background:\" & Eventos[Cor] & \"'></i>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Status], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</td>\"\n                                & \"<td>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Transmissão LF], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</td>\"\n                                & \"<td>\" & SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( Eventos[Observação], \"&\", \"&amp;\" ), \"<\", \"&lt;\" ), \">\", \"&gt;\" ) & \"</td></tr>\",\n                            \"\",\n                            Eventos[Data início], ASC,\n                            Eventos[Evento], ASC\n                        ),\n                \"\",\n                Eventos[Mês de início], ASC\n            )\n            & \"</tbody></table>\"\n    )"
+          },
+          {
+            "name": "HTML Legenda",
+            "expression": "VAR c = CALCULATE ( COUNTROWS ( Eventos ), Eventos[StatusCat] = \"Confirmado\" ) + 0\nVAR a = CALCULATE ( COUNTROWS ( Eventos ), Eventos[StatusCat] = \"A confirmar\" ) + 0\nVAR x = CALCULATE ( COUNTROWS ( Eventos ), Eventos[StatusCat] = \"Cancelado\" ) + 0\nVAR o = CALCULATE ( COUNTROWS ( Eventos ), Eventos[StatusCat] = \"Outros\" ) + 0\nRETURN\n    \"<div class='leg'>\"\n        & \"<div><i class='dot' style='background:#7AE582'></i>Confirmado<span>\" & c & \"</span></div>\"\n        & \"<div><i class='dot' style='background:#F2C75C'></i>A confirmar<span>\" & a & \"</span></div>\"\n        & \"<div><i class='dot' style='background:#F2857E'></i>Cancelado<span>\" & x & \"</span></div>\"\n        & IF ( o > 0, \"<div><i class='dot' style='background:#B9A995'></i>Outros<span>\" & o & \"</span></div>\" )\n        & \"</div>\""
+          },
+          {
+            "name": "HTML Cabecalho",
+            "expression": "\"<div class='hd'><h1>Eventos de curta duração</h1><p>Eventos com oportunidades de venda de campanhas no digital</p></div>\""
+          },
+          {
+            "name": "HTML Titulo Linha",
+            "expression": "VAR n = COUNTROWS ( Eventos ) + 0\nRETURN \"<div class='hd'><h1 style='font-size:18px'>Linha do tempo</h1><p>\" & IF ( [Mes Selecionado] <> \"\", SELECTEDVALUE ( Meses[Mês] ) & \" (filtro de mês) · \" & n & IF ( n = 1, \" evento\", \" eventos\" ), VAR fimJ = EDATE ( TODAY (), [Periodo Meses] ) - 1 VAR q = COUNTROWS ( FILTER ( Eventos, Eventos[Data início] <= fimJ && Eventos[Data fim] >= TODAY () ) ) + 0 RETURN \"De \" & FORMAT ( TODAY (), \"dd/MM/yyyy\" ) & \" a \" & FORMAT ( fimJ, \"dd/MM/yyyy\" ) & \" · \" & q & IF ( q = 1, \" evento\", \" eventos\" ) ) & \"</p></div>\""
+          },
+          {
+            "name": "HTML Titulo Calendario",
+            "expression": "VAR n = COUNTROWS ( Eventos ) + 0\nRETURN \"<div class='hd'><h1 style='font-size:18px'>Calendário</h1><p>\" & IF ( [Mes Selecionado] <> \"\", SELECTEDVALUE ( Meses[Mês] ), \"Mês atual · use o filtro Mês para trocar\" ) & \"</p></div>\""
+          },
+          {
+            "name": "HTML Titulo Cards",
+            "expression": "VAR n = COUNTROWS ( Eventos ) + 0\nRETURN \"<div class='hd'><h1 style='font-size:18px'>Cards</h1><p>\" & n & IF ( n = 1, \" evento\", \" eventos\" ) & \"</p></div>\""
+          },
+          {
+            "name": "HTML Titulo Lista",
+            "expression": "VAR n = COUNTROWS ( Eventos ) + 0\nRETURN \"<div class='hd'><h1 style='font-size:18px'>Lista</h1><p>\" & n & IF ( n = 1, \" evento\", \" eventos\" ) & \" · agrupados por mês de início\" & \"</p></div>\""
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "EventoMes_Eventos",
+        "fromTable": "EventoMes",
+        "fromColumn": "ID",
+        "toTable": "Eventos",
+        "toColumn": "ID",
+        "crossFilteringBehavior": "bothDirections"
+      },
+      {
+        "name": "EventoMes_Meses",
+        "fromTable": "EventoMes",
+        "fromColumn": "Chave",
+        "toTable": "Meses",
+        "toColumn": "Chave"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"CaminhoExcel\",\"Eventos\"]"
+      },
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      },
+      {
+        "name": "PBIDesktopVersion",
+        "value": "2.130"
+      }
+    ]
+  }
+}

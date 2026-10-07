@@ -1,0 +1,130 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.3.0/schema.json",
+  "name": "calendario_cabecalho",
+  "position": {
+    "x": 72,
+    "y": 12,
+    "z": 2000,
+    "width": 560,
+    "height": 60,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "htmlContent443BE3AD55E043BF878BED274D3A6855",
+    "query": {
+      "queryState": {
+        "content": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Medidas"
+                    }
+                  },
+                  "Property": "HTML Cabecalho"
+                }
+              },
+              "queryRef": "Medidas.HTML Cabecalho",
+              "nativeQueryRef": "HTML Cabecalho"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "stylesheet": [
+        {
+          "properties": {
+            "stylesheet": {
+              "expr": {
+                "Literal": {
+                  "Value": "'* { box-sizing: border-box; font-family: ''Segoe UI'', Roboto, Arial, sans-serif; }\nbody, div { color: #FFFAF3; }\n.vazio { color: #ECDCC7; padding: 12px; font-size: 13px; }\n.next { display: flex; gap: 12px; overflow-x: auto; padding: 2px; }\n.hero { flex: 1 1 260px; min-width: 260px; background: #1E3D58; border-left: 5px solid #7AE582; border-radius: 10px; padding: 10px 14px; }\n.top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }\n.eb { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #FFCFA6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n.st { font-size: 11.5px; font-weight: 700; white-space: nowrap; }\n.st i, .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }\n.nm { font-size: 18px; font-weight: 800; margin: 4px 0; }\n.meta { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; font-weight: 700; }\n.meta b, .obs b, .kv b { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #FFCFA6; font-weight: 700; }\n.obs { font-size: 12.5px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n.obs b { display: inline; margin-right: 6px; }\n.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }\n.card { background: #152739; border: 1px solid #2B4561; border-top: 3px solid #7AE582; border-radius: 10px; padding: 14px 16px; }\n.card h3 { margin: 0 0 4px; font-size: 16px; color: #FFFAF3; }\n.when { font-size: 13px; color: #ECDCC7; margin-bottom: 10px; }\n.when strong { color: #FFFAF3; }\n.badge { float: right; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #1C3147; color: #FFFAF3; }\n.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: 13px; }\n.kv b { display: inline; font-size: 12px; text-transform: none; letter-spacing: 0; color: #B8A68F; }\n.past { opacity: .62; }\ntable { width: 100%; border-collapse: collapse; font-size: 13px; }\nth, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #2B4561; vertical-align: top; }\nthead th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #B8A68F; background: #1C3147; }\ntr.grp td { font-weight: 800; padding-top: 14px; border-bottom: 2px solid #2B4561; color: #FFFAF3; }\ntr.grp span { font-weight: 500; color: #B8A68F; margin-left: 8px; }\ntd.nm2 { font-weight: 700; }\ntd.dt { white-space: nowrap; }\n.leg div { display: flex; align-items: center; font-size: 13px; padding: 4px 2px; }\n.leg span { margin-left: auto; color: #B8A68F; }\n.hd h1 { margin: 0; font-size: 22px; font-weight: 800; color: #FFFAF3; }\n.hd p { margin: 2px 0 0; font-size: 13px; color: #ECDCC7; }\n'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "contentFormatting": [
+        {
+          "properties": {
+            "fontColour": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFAF3'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
