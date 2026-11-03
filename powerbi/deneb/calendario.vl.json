@@ -1,0 +1,459 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Calendário do mês (filtro Mês, ou mês atual), 6 semanas. Campos: Evento, InicioISO, FimISO, Cor, ID, Status, Mes Selecionado.",
+  "data": {
+    "name": "dataset"
+  },
+  "width": "container",
+  "height": "container",
+  "autosize": {
+    "type": "fit",
+    "contains": "padding"
+  },
+  "padding": {
+    "left": 4,
+    "right": 4,
+    "top": 22,
+    "bottom": 4
+  },
+  "transform": [
+    {
+      "calculate": "datetime(year(now()), month(now()), date(now()))",
+      "as": "hoje"
+    },
+    {
+      "calculate": "datum['Mes Selecionado'] ? toDate(datum['Mes Selecionado'] + '-01T00:00:00') : datetime(year(datum.hoje), month(datum.hoje), 1)",
+      "as": "mesIni"
+    },
+    {
+      "calculate": "datetime(year(datum.mesIni), month(datum.mesIni), 1 - day(datum.mesIni))",
+      "as": "gradeIni"
+    },
+    {
+      "calculate": "date(datetime(year(datum.mesIni), month(datum.mesIni) + 1, 0))",
+      "as": "diasMes"
+    },
+    {
+      "calculate": "6",
+      "as": "semanas"
+    }
+  ],
+  "layer": [
+    {
+      "description": "Grade de dias",
+      "transform": [
+        {
+          "aggregate": [
+            {
+              "op": "min",
+              "field": "gradeIni",
+              "as": "g"
+            },
+            {
+              "op": "min",
+              "field": "mesIni",
+              "as": "mi"
+            },
+            {
+              "op": "max",
+              "field": "semanas",
+              "as": "sem"
+            },
+            {
+              "op": "min",
+              "field": "hoje",
+              "as": "h"
+            }
+          ]
+        },
+        {
+          "calculate": "sequence(0, datum.sem * 7)",
+          "as": "i"
+        },
+        {
+          "flatten": [
+            "i"
+          ]
+        },
+        {
+          "calculate": "datetime(year(datum.g), month(datum.g), date(datum.g) + datum.i)",
+          "as": "dia"
+        },
+        {
+          "calculate": "datum.i % 7",
+          "as": "col"
+        },
+        {
+          "calculate": "floor(datum.i / 7)",
+          "as": "lin"
+        },
+        {
+          "calculate": "datum.col + 1",
+          "as": "col2"
+        },
+        {
+          "calculate": "datum.lin + 1",
+          "as": "lin2"
+        },
+        {
+          "calculate": "month(datum.dia) == month(datum.mi)",
+          "as": "noMes"
+        },
+        {
+          "calculate": "time(datum.dia) == time(datum.h)",
+          "as": "ehHoje"
+        },
+        {
+          "calculate": "date(datum.dia) < 10 ? '0' + date(datum.dia) : '' + date(datum.dia)",
+          "as": "num"
+        },
+        {
+          "calculate": "['DOM','SEG','TER','QUA','QUI','SEX','SÁB'][datum.col]",
+          "as": "dow"
+        }
+      ],
+      "layer": [
+        {
+          "mark": {
+            "type": "rect",
+            "stroke": "#2B4561",
+            "strokeWidth": 1
+          },
+          "encoding": {
+            "x": {
+              "field": "col",
+              "type": "quantitative",
+              "scale": {
+                "domain": [
+                  0,
+                  7
+                ],
+                "nice": false,
+                "zero": false
+              }
+            },
+            "x2": {
+              "field": "col2"
+            },
+            "y": {
+              "field": "lin",
+              "type": "quantitative",
+              "scale": {
+                "domain": [
+                  -0.22,
+                  6
+                ],
+                "nice": false,
+                "zero": false,
+                "reverse": true
+              }
+            },
+            "y2": {
+              "field": "lin2"
+            },
+            "fill": {
+              "condition": {
+                "test": "datum.noMes",
+                "value": "#152739"
+              },
+              "value": "#0E1B29"
+            }
+          }
+        },
+        {
+          "transform": [
+            {
+              "filter": "datum.ehHoje"
+            }
+          ],
+          "mark": {
+            "type": "point",
+            "shape": "circle",
+            "size": 560,
+            "filled": true,
+            "color": "#F0A77C",
+            "opacity": 1,
+            "xOffset": 17,
+            "yOffset": 16
+          },
+          "encoding": {
+            "x": {
+              "field": "col",
+              "type": "quantitative"
+            },
+            "y": {
+              "field": "lin",
+              "type": "quantitative"
+            }
+          }
+        },
+        {
+          "mark": {
+            "type": "text",
+            "align": "center",
+            "baseline": "middle",
+            "dx": 17,
+            "dy": 16,
+            "fontSize": 12,
+            "fontWeight": 700
+          },
+          "encoding": {
+            "x": {
+              "field": "col",
+              "type": "quantitative"
+            },
+            "y": {
+              "field": "lin",
+              "type": "quantitative"
+            },
+            "text": {
+              "field": "num"
+            },
+            "color": {
+              "condition": [
+                {
+                  "test": "datum.ehHoje",
+                  "value": "#1B0F08"
+                },
+                {
+                  "test": "datum.noMes",
+                  "value": "#FFFAF3"
+                }
+              ],
+              "value": "#8F8070"
+            }
+          }
+        },
+        {
+          "transform": [
+            {
+              "filter": "datum.lin == 0"
+            }
+          ],
+          "mark": {
+            "type": "text",
+            "align": "left",
+            "baseline": "bottom",
+            "dx": 6,
+            "dy": -5,
+            "fontSize": 11,
+            "fontWeight": 700,
+            "color": "#ECDCC7",
+            "letterSpacing": 0.6
+          },
+          "encoding": {
+            "x": {
+              "field": "col",
+              "type": "quantitative"
+            },
+            "y": {
+              "field": "lin",
+              "type": "quantitative"
+            },
+            "text": {
+              "field": "dow"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "description": "Eventos (um bloco por dia; dias seguidos formam uma barra)",
+      "transform": [
+        {
+          "calculate": "toDate(datum.InicioISO + 'T00:00:00')",
+          "as": "ini"
+        },
+        {
+          "calculate": "toDate(datum.FimISO + 'T00:00:00')",
+          "as": "fim"
+        },
+        {
+          "calculate": "round((datum.fim - datum.ini) / 86400000)",
+          "as": "nDias"
+        },
+        {
+          "calculate": "sequence(0, datum.nDias + 1)",
+          "as": "k"
+        },
+        {
+          "flatten": [
+            "k"
+          ]
+        },
+        {
+          "calculate": "datetime(year(datum.ini), month(datum.ini), date(datum.ini) + datum.k)",
+          "as": "dia"
+        },
+        {
+          "calculate": "round((datum.dia - datum.gradeIni) / 86400000)",
+          "as": "i"
+        },
+        {
+          "filter": "datum.i >= 0 && datum.i < datum.semanas * 7"
+        },
+        {
+          "calculate": "datum.i % 7",
+          "as": "col"
+        },
+        {
+          "calculate": "floor(datum.i / 7)",
+          "as": "lin"
+        },
+        {
+          "calculate": "datum.k == 0 || datum.col == 0",
+          "as": "mostraNome"
+        },
+        {
+          "window": [
+            {
+              "op": "dense_rank",
+              "as": "faixa"
+            }
+          ],
+          "groupby": [
+            "lin"
+          ],
+          "sort": [
+            {
+              "field": "ini"
+            },
+            {
+              "field": "ID"
+            }
+          ]
+        },
+        {
+          "filter": "datum.faixa <= 3"
+        },
+        {
+          "calculate": "datum.col + 1",
+          "as": "col2"
+        },
+        {
+          "calculate": "datum.lin + 0.34 + (datum.faixa - 1) * 0.215",
+          "as": "y0"
+        },
+        {
+          "calculate": "datum.y0 + 0.18",
+          "as": "y1"
+        },
+        {
+          "calculate": "datum.y0 + 0.09",
+          "as": "ym"
+        },
+        {
+          "calculate": "datum.FimISO == datum.InicioISO ? timeFormat(datum.ini, '%d/%m/%Y') : timeFormat(datum.ini, '%d/%m') + ' a ' + timeFormat(datum.fim, '%d/%m/%Y')",
+          "as": "datas"
+        }
+      ],
+      "layer": [
+        {
+          "mark": {
+            "type": "rect",
+            "opacity": 0.92
+          },
+          "encoding": {
+            "x": {
+              "field": "col",
+              "type": "quantitative"
+            },
+            "x2": {
+              "field": "col2"
+            },
+            "y": {
+              "field": "y0",
+              "type": "quantitative"
+            },
+            "y2": {
+              "field": "y1"
+            },
+            "fill": {
+              "field": "Cor",
+              "type": "nominal",
+              "scale": null
+            },
+            "tooltip": [
+              {
+                "field": "Evento"
+              },
+              {
+                "field": "datas",
+                "title": "Data"
+              },
+              {
+                "field": "Status"
+              }
+            ]
+          }
+        },
+        {
+          "transform": [
+            {
+              "filter": "datum.mostraNome"
+            }
+          ],
+          "mark": {
+            "type": "text",
+            "align": "left",
+            "baseline": "middle",
+            "dx": 6,
+            "fontSize": 12,
+            "fontWeight": 700,
+            "color": "#0E1B29",
+            "limit": {
+              "expr": "width / 7 - 10"
+            }
+          },
+          "encoding": {
+            "x": {
+              "field": "col",
+              "type": "quantitative"
+            },
+            "y": {
+              "field": "ym",
+              "type": "quantitative"
+            },
+            "text": {
+              "field": "Evento"
+            },
+            "tooltip": [
+              {
+                "field": "Evento"
+              },
+              {
+                "field": "datas",
+                "title": "Data"
+              },
+              {
+                "field": "Status"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "resolve": {
+    "scale": {
+      "x": "shared",
+      "y": "shared"
+    }
+  },
+  "config": {
+    "view": {
+      "stroke": null
+    },
+    "font": "Segoe UI, sans-serif",
+    "axisX": {
+      "disable": true
+    },
+    "axisY": {
+      "disable": true
+    },
+    "scale": {
+      "bandPaddingInner": 0,
+      "bandPaddingOuter": 0
+    }
+  }
+}
