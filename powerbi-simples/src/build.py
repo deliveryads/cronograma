@@ -40,7 +40,7 @@ M_EVENTOS = r'''let
     Site = if EhWeb then Partes[Scheme] & "://" & Partes[Host] & (if PosSite >= 0 then "/" & Segmentos{PosSite} & "/" & Segmentos{PosSite + 1} else "") else null,
     NomeArquivo = if not EhWeb then null else if Record.HasFields(Partes[Query], "file") then Record.Field(Partes[Query], "file") else List.Last(Segmentos),
     Arquivos = if EhWeb then SharePoint.Files(Site, [ApiVersion = 15]) else null,
-    Encontrados = if EhWeb then Table.SelectRows(Arquivos, each Text.Lower([Name]) = Text.Lower(NomeArquivo) or Text.Lower(Uri.EscapeDataString([Name])) = Text.Lower(NomeArquivo)) else null,
+    Encontrados = if EhWeb then Table.SelectRows(Arquivos, each Text.Lower(Text.From([Name]) ?? "") = Text.Lower(NomeArquivo ?? "") or Text.Lower(Uri.EscapeDataString(Text.From([Name]) ?? "")) = Text.Lower(NomeArquivo ?? "")) else null,
     Conteudo = if EhWeb then
             (if Table.IsEmpty(Encontrados) then error Error.Record("Arquivo não encontrado", "O arquivo '" & NomeArquivo & "' não foi encontrado no site " & Site & ". Confira o parâmetro CaminhoExcel.") else Encontrados{0}[Content])
         else File.Contents(Caminho),
@@ -53,8 +53,13 @@ M_EVENTOS = r'''let
     Bruto = if TemTabela then Pasta{[Item = "Eventos", Kind = "Table"]}[Data] else DaPlanilha,
     Colunas = Table.SelectColumns(Bruto, {"Data início", "Data fim", "Evento", "Status", "Transmissão LF", "Observação"}, MissingField.UseNull),
     Tipos = Table.TransformColumnTypes(Colunas, {{"Data início", type date}, {"Data fim", type date}, {"Evento", type text}, {"Status", type text}, {"Transmissão LF", type text}, {"Observação", type text}}, "pt-BR"),
-    Limpo = Table.TransformColumns(Tipos, {{"Evento", each if _ = null then null else Text.Trim(_), type text}, {"Status", each if _ = null then null else Text.Trim(_), type text}}),
-    Validos = Table.SelectRows(Limpo, each [Evento] <> null and [Evento] <> "" and [#"Data início"] <> null),
+    // Textos: vazio vira null; nada de função de texto sobre null
+    Limpo = Table.TransformColumns(Tipos, {
+        {"Evento", each let t = Text.Trim(Text.From(_) ?? "") in if t = "" then null else t, type text},
+        {"Status", each let t = Text.Trim(Text.From(_) ?? "") in if t = "" then null else t, type text},
+        {"Transmissão LF", each let t = Text.Trim(Text.From(_) ?? "") in if t = "" then null else t, type text},
+        {"Observação", each let t = Text.Trim(Text.From(_) ?? "") in if t = "" then null else t, type text}}),
+    Validos = Table.SelectRows(Limpo, each [Evento] <> null and [#"Data início"] <> null),
     // Data fim vazia = evento de um dia
     ComFim = Table.AddColumn(Validos, "Fim", each if [#"Data fim"] = null then [#"Data início"] else [#"Data fim"], type date),
     SemFimOriginal = Table.RemoveColumns(ComFim, {"Data fim"}),
@@ -63,25 +68,26 @@ M_EVENTOS = r'''let
     Hoje = Date.From(DateTime.LocalNow()),
     // Colunas de exibição
     ComDias = Table.AddColumn(DatasOk, "Dias", each Duration.Days([#"Data fim"] - [#"Data início"]) + 1, Int64.Type),
-    ComPeriodo = Table.AddColumn(ComDias, "Período", each
-        if [#"Data início"] = [#"Data fim"] then Date.ToText([#"Data início"], "dd/MM/yyyy")
-        else Date.ToText([#"Data início"], "dd/MM") & " a " & Date.ToText([#"Data fim"], "dd/MM/yyyy"), type text),
-    ComDiaSemana = Table.AddColumn(ComPeriodo, "Dia da semana", each
-        let
-            a = Date.DayOfWeekName([#"Data início"], "pt-BR"),
-            b = Date.DayOfWeekName([#"Data fim"], "pt-BR"),
-            t = if [#"Data início"] = [#"Data fim"] then a else a & " a " & b
-        in
-            Text.Upper(Text.Start(t, 1)) & Text.Middle(t, 1), type text),
-    ComMes = Table.AddColumn(ComDiaSemana, "Mês", each
-        let m = Date.MonthName([#"Data início"], "pt-BR") in Text.Upper(Text.Start(m, 1)) & Text.Middle(m, 1) & " de " & Text.From(Date.Year([#"Data início"])), type text),
+    DataTxt = (d as date, comAno as logical) as text =>
+        Text.PadStart(Text.From(Date.Day(d)), 2, "0") & "/" & Text.PadStart(Text.From(Date.Month(d)), 2, "0") & (if comAno then "/" & Text.From(Date.Year(d)) else ""),
+    ComPeriodo = Table.AddColumn(ComDias, "Período", each try
+        (if [#"Data início"] = [#"Data fim"] then DataTxt([#"Data início"], true)
+        else DataTxt([#"Data início"], false) & " a " & DataTxt([#"Data fim"], true)) otherwise null, type text),
+    NomesDias = {"Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"},
+    DiaTxt = (d as date) as text => NomesDias{Date.DayOfWeek(d, Day.Sunday)},
+    ComDiaSemana = Table.AddColumn(ComPeriodo, "Dia da semana", each try
+        (if [#"Data início"] = [#"Data fim"] then DiaTxt([#"Data início"])
+        else DiaTxt([#"Data início"]) & " a " & Text.Lower(DiaTxt([#"Data fim"]))) otherwise null, type text),
+    NomesMeses = {"Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"},
+    ComMes = Table.AddColumn(ComDiaSemana, "Mês", each try
+        (NomesMeses{Date.Month([#"Data início"]) - 1} & " de " & Text.From(Date.Year([#"Data início"]))) otherwise null, type text),
     ComOrdemMes = Table.AddColumn(ComMes, "Ordem do mês", each Date.Year([#"Data início"]) * 100 + Date.Month([#"Data início"]), Int64.Type),
     ComLegenda = Table.AddColumn(ComOrdemMes, "Status (legenda)", each
-        let s = if [Status] = null then "" else Text.Lower([Status]) in
+        let s = Text.Lower(Text.From([Status]) ?? "") in
             if s = "confirmado" then "🟢 Confirmado"
             else if s = "a confirmar" then "🟡 A confirmar"
             else if s = "cancelado" then "🔴 Cancelado"
-            else "⚪ " & (if [Status] = null then "Sem status" else [Status]), type text),
+            else "⚪ " & (Text.From([Status]) ?? "Sem status"), type text),
     ComSituacao = Table.AddColumn(ComLegenda, "Situação", each
         if [#"Data fim"] < Hoje then "Realizado"
         else if [#"Data início"] <= Hoje then "Em andamento"
