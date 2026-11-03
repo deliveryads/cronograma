@@ -1,0 +1,198 @@
+{
+  "compatibilityLevel": 1567,
+  "model": {
+    "culture": "pt-BR",
+    "sourceQueryCulture": "pt-BR",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": true
+    },
+    "expressions": [
+      {
+        "name": "CaminhoExcel",
+        "kind": "m",
+        "expression": "\"COLE_AQUI_O_CAMINHO_DO_EXCEL\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Text"
+          }
+        ]
+      }
+    ],
+    "tables": [
+      {
+        "name": "Eventos",
+        "columns": [
+          {
+            "name": "Evento",
+            "dataType": "string",
+            "sourceColumn": "Evento",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Período",
+            "dataType": "string",
+            "sourceColumn": "Período",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Dia da semana",
+            "dataType": "string",
+            "sourceColumn": "Dia da semana",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Status (legenda)",
+            "dataType": "string",
+            "sourceColumn": "Status (legenda)",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Transmissão LF",
+            "dataType": "string",
+            "sourceColumn": "Transmissão LF",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Observação",
+            "dataType": "string",
+            "sourceColumn": "Observação",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Situação",
+            "dataType": "string",
+            "sourceColumn": "Situação",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Mês",
+            "dataType": "string",
+            "sourceColumn": "Mês",
+            "summarizeBy": "none",
+            "sortByColumn": "Ordem do mês"
+          },
+          {
+            "name": "Data início",
+            "dataType": "dateTime",
+            "sourceColumn": "Data início",
+            "summarizeBy": "none",
+            "formatString": "dd/MM/yyyy"
+          },
+          {
+            "name": "Data fim",
+            "dataType": "dateTime",
+            "sourceColumn": "Data fim",
+            "summarizeBy": "none",
+            "formatString": "dd/MM/yyyy"
+          },
+          {
+            "name": "Dias",
+            "dataType": "int64",
+            "sourceColumn": "Dias",
+            "summarizeBy": "none",
+            "formatString": "0"
+          },
+          {
+            "name": "Status",
+            "dataType": "string",
+            "sourceColumn": "Status",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Ordem do mês",
+            "dataType": "int64",
+            "sourceColumn": "Ordem do mês",
+            "summarizeBy": "none",
+            "formatString": "0",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Eventos",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    // CaminhoExcel: Excel > Arquivo > Informações > Copiar caminho (ou caminho local, ex.: C:\\Eventos\\Eventos.xlsx)",
+                "    Texto = Text.Trim(CaminhoExcel),",
+                "    Caminho = Text.BeforeDelimiter(Texto, \"?\"),",
+                "    EhWeb = Text.StartsWith(Text.Lower(Caminho), \"http\"),",
+                "    Partes = if EhWeb then Uri.Parts(Texto) else null,",
+                "    Segmentos = if EhWeb then List.Select(Text.Split(Partes[Path], \"/\"), each _ <> \"\") else {},",
+                "    PosSite = List.PositionOfAny(List.Transform(Segmentos, Text.Lower), {\"sites\", \"teams\", \"personal\"}),",
+                "    Site = if EhWeb then Partes[Scheme] & \"://\" & Partes[Host] & (if PosSite >= 0 then \"/\" & Segmentos{PosSite} & \"/\" & Segmentos{PosSite + 1} else \"\") else null,",
+                "    NomeArquivo = if not EhWeb then null else if Record.HasFields(Partes[Query], \"file\") then Record.Field(Partes[Query], \"file\") else List.Last(Segmentos),",
+                "    Arquivos = if EhWeb then SharePoint.Files(Site, [ApiVersion = 15]) else null,",
+                "    Encontrados = if EhWeb then Table.SelectRows(Arquivos, each Text.Lower([Name]) = Text.Lower(NomeArquivo) or Text.Lower(Uri.EscapeDataString([Name])) = Text.Lower(NomeArquivo)) else null,",
+                "    Conteudo = if EhWeb then",
+                "            (if Table.IsEmpty(Encontrados) then error Error.Record(\"Arquivo não encontrado\", \"O arquivo '\" & NomeArquivo & \"' não foi encontrado no site \" & Site & \". Confira o parâmetro CaminhoExcel.\") else Encontrados{0}[Content])",
+                "        else File.Contents(Caminho),",
+                "    Pasta = Excel.Workbook(Conteudo, null, true),",
+                "    // Tabela do Excel chamada Eventos; se não houver, primeira aba com o cabeçalho nas 10 primeiras linhas",
+                "    TemTabela = Table.MatchesAnyRows(Pasta, each [Kind] = \"Table\" and [Item] = \"Eventos\"),",
+                "    Planilha = Table.SelectRows(Pasta, each [Kind] = \"Sheet\"){0}[Data],",
+                "    PosCabecalho = List.PositionOf(List.Transform(Table.ToRows(Table.FirstN(Planilha, 10)), (linha) => List.Contains(List.Transform(linha, each if _ = null then \"\" else Text.Lower(Text.Trim(Text.From(_)))), \"evento\")), true),",
+                "    DaPlanilha = Table.PromoteHeaders(Table.Skip(Planilha, if PosCabecalho < 0 then 0 else PosCabecalho), [PromoteAllScalars = true]),",
+                "    Bruto = if TemTabela then Pasta{[Item = \"Eventos\", Kind = \"Table\"]}[Data] else DaPlanilha,",
+                "    Colunas = Table.SelectColumns(Bruto, {\"Data início\", \"Data fim\", \"Evento\", \"Status\", \"Transmissão LF\", \"Observação\"}, MissingField.UseNull),",
+                "    Tipos = Table.TransformColumnTypes(Colunas, {{\"Data início\", type date}, {\"Data fim\", type date}, {\"Evento\", type text}, {\"Status\", type text}, {\"Transmissão LF\", type text}, {\"Observação\", type text}}, \"pt-BR\"),",
+                "    Limpo = Table.TransformColumns(Tipos, {{\"Evento\", each if _ = null then null else Text.Trim(_), type text}, {\"Status\", each if _ = null then null else Text.Trim(_), type text}}),",
+                "    Validos = Table.SelectRows(Limpo, each [Evento] <> null and [Evento] <> \"\" and [#\"Data início\"] <> null),",
+                "    // Data fim vazia = evento de um dia",
+                "    ComFim = Table.AddColumn(Validos, \"Fim\", each if [#\"Data fim\"] = null then [#\"Data início\"] else [#\"Data fim\"], type date),",
+                "    SemFimOriginal = Table.RemoveColumns(ComFim, {\"Data fim\"}),",
+                "    Renomeado = Table.RenameColumns(SemFimOriginal, {{\"Fim\", \"Data fim\"}}),",
+                "    DatasOk = Table.SelectRows(Renomeado, each [#\"Data fim\"] >= [#\"Data início\"]),",
+                "    Hoje = Date.From(DateTime.LocalNow()),",
+                "    // Colunas de exibição",
+                "    ComDias = Table.AddColumn(DatasOk, \"Dias\", each Duration.Days([#\"Data fim\"] - [#\"Data início\"]) + 1, Int64.Type),",
+                "    ComPeriodo = Table.AddColumn(ComDias, \"Período\", each",
+                "        if [#\"Data início\"] = [#\"Data fim\"] then Date.ToText([#\"Data início\"], \"dd/MM/yyyy\")",
+                "        else Date.ToText([#\"Data início\"], \"dd/MM\") & \" a \" & Date.ToText([#\"Data fim\"], \"dd/MM/yyyy\"), type text),",
+                "    ComDiaSemana = Table.AddColumn(ComPeriodo, \"Dia da semana\", each",
+                "        let",
+                "            a = Date.DayOfWeekName([#\"Data início\"], \"pt-BR\"),",
+                "            b = Date.DayOfWeekName([#\"Data fim\"], \"pt-BR\"),",
+                "            t = if [#\"Data início\"] = [#\"Data fim\"] then a else a & \" a \" & b",
+                "        in",
+                "            Text.Upper(Text.Start(t, 1)) & Text.Middle(t, 1), type text),",
+                "    ComMes = Table.AddColumn(ComDiaSemana, \"Mês\", each",
+                "        let m = Date.MonthName([#\"Data início\"], \"pt-BR\") in Text.Upper(Text.Start(m, 1)) & Text.Middle(m, 1) & \" de \" & Text.From(Date.Year([#\"Data início\"])), type text),",
+                "    ComOrdemMes = Table.AddColumn(ComMes, \"Ordem do mês\", each Date.Year([#\"Data início\"]) * 100 + Date.Month([#\"Data início\"]), Int64.Type),",
+                "    ComLegenda = Table.AddColumn(ComOrdemMes, \"Status (legenda)\", each",
+                "        let s = if [Status] = null then \"\" else Text.Lower([Status]) in",
+                "            if s = \"confirmado\" then \"🟢 Confirmado\"",
+                "            else if s = \"a confirmar\" then \"🟡 A confirmar\"",
+                "            else if s = \"cancelado\" then \"🔴 Cancelado\"",
+                "            else \"⚪ \" & (if [Status] = null then \"Sem status\" else [Status]), type text),",
+                "    ComSituacao = Table.AddColumn(ComLegenda, \"Situação\", each",
+                "        if [#\"Data fim\"] < Hoje then \"Realizado\"",
+                "        else if [#\"Data início\"] <= Hoje then \"Em andamento\"",
+                "        else \"Próximo\", type text),",
+                "    Ordenado = Table.Sort(ComSituacao, {{\"Data início\", Order.Ascending}, {\"Evento\", Order.Ascending}}),",
+                "    Final = Table.ReorderColumns(Ordenado, {\"Evento\", \"Período\", \"Dia da semana\", \"Status (legenda)\", \"Transmissão LF\", \"Observação\", \"Situação\", \"Mês\", \"Data início\", \"Data fim\", \"Dias\", \"Status\", \"Ordem do mês\"})",
+                "in",
+                "    Final"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "annotations": [
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"CaminhoExcel\",\"Eventos\"]"
+      },
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      }
+    ]
+  }
+}
